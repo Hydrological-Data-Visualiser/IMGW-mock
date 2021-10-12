@@ -19,17 +19,15 @@ public class DailyPrecipitation {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
     private Long id;
-    private int stationId;
+    private Long stationId;
     private String stationName;
     private LocalDate date;
     private double dailyPrecipitation;
 
-    public DailyPrecipitation(int stationId, String stationName, LocalDate date, double dailyPrecipitation) {
+    public DailyPrecipitation(Long stationId, String stationName, LocalDate date, double dailyPrecipitation) {
         this.stationId = stationId;
         this.stationName = stationName;
         this.date = date;
         this.dailyPrecipitation = dailyPrecipitation;
     }
-
-
 }
