@@ -23,7 +23,6 @@ public class DailyPrecipitation {
     private String stationName;
     private LocalDate date;
     private double dailyPrecipitation;
-//    private int SMDBStatus;
 
     public DailyPrecipitation(int stationId, String stationName, LocalDate date, double dailyPrecipitation) {
         this.stationId = stationId;
