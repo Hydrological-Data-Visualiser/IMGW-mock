@@ -21,7 +21,7 @@ public class CSVUtils {
                 // get only stations with id % 11 by now
                 if (Long.parseLong(record[0]) % 11 == 0) {
                     DailyPrecipitation dailyPrecipitation = new DailyPrecipitation(
-                            Integer.parseInt(record[0]),
+                            Long.parseLong(record[0]),
                             record[1],
                             LocalDate.of(Integer.parseInt(record[2]), Integer.parseInt(record[3]), Integer.parseInt(record[4])),
                             Double.parseDouble(record[5])
@@ -38,9 +38,9 @@ public class CSVUtils {
 
     public static List<Station> getStationListFromCSV(String pathToFile) {
         List<Station> stations = new ArrayList<>();
-        try {
-            CSVReader reader = new CSVReader(new FileReader(pathToFile));
+        try (CSVReader reader = new CSVReader(new FileReader(pathToFile))) {
             List<String[]> csvRecords = reader.readAll();
+
             csvRecords.forEach(record -> {
                 // get precipitation from stations with id % 11 by now
                 if (Integer.parseInt(record[0]) % 11 == 0) {
@@ -59,5 +59,4 @@ public class CSVUtils {
             return List.of();
         }
     }
-
 }
