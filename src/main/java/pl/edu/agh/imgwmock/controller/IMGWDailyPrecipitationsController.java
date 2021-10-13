@@ -11,6 +11,8 @@ import pl.edu.agh.imgwmock.repository.DailyPrecipitationRepository;
 import pl.edu.agh.imgwmock.utils.CSVUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,14 +36,24 @@ public class IMGWDailyPrecipitationsController {
     @CrossOrigin
     @GetMapping("/precipitation")
     public ResponseEntity<List<DailyPrecipitation>> getDailyPrecipitationsById(
-            @RequestParam(value = "stationId", required = true) Optional<Long> stationId,
+            @RequestParam(value = "stationId", required = false) Optional<Long> stationId,
+            @RequestParam(value = "date", required = false) Optional<String> dateString,
             HttpServletRequest request
     ) {
-        if (stationId.isPresent()) {
-            return new ResponseEntity<>(dailyPrecipitationRepository.findByStationId(stationId.get()), HttpStatus.OK);
+        Optional<LocalDate> date = Optional.empty();
+        if (dateString.isPresent()) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            date = Optional.of(LocalDate.parse(dateString.get(), formatter));
+        }
+
+        if (stationId.isPresent() && date.isPresent()) {
+            return new ResponseEntity<List<DailyPrecipitation>>(dailyPrecipitationRepository.findByStationIdAndDate(stationId.get(), date.get()), HttpStatus.OK);
+        } else if (stationId.isPresent()) {
+            return new ResponseEntity<List<DailyPrecipitation>>(dailyPrecipitationRepository.findByStationId(stationId.get()), HttpStatus.OK);
+        } else if (date.isPresent()) {
+            return new ResponseEntity<List<DailyPrecipitation>>(dailyPrecipitationRepository.findByDate(date.get()), HttpStatus.OK);
         } else {
-            // no id
-            return new ResponseEntity<List<DailyPrecipitation>>(List.of(), HttpStatus.OK);
+            return new ResponseEntity<List<DailyPrecipitation>>(dailyPrecipitationRepository.findAll(), HttpStatus.OK);
         }
     }
 }
