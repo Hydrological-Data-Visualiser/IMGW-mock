@@ -46,6 +46,7 @@ public class IMGWStationsController {
             @RequestParam(value = "id", required = false) Optional<Long> id,
             HttpServletRequest request
     ) {
+        logger.info("Getting station data: stationId = " + id.toString());
         if (id.isPresent()) {
             Optional<Station> station = stationRepository.findById(id.get());
             if (station.isPresent()) {

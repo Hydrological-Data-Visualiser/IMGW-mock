@@ -46,6 +46,7 @@ public class IMGWDailyPrecipitationsController {
             @RequestParam(value = "date", required = false) Optional<String> dateString,
             HttpServletRequest request
     ) {
+        logger.info("Getting precipitation data: stationId = " + stationId.toString() + " date = " + dateString.toString());
         Optional<LocalDate> date = Optional.empty();
         if (dateString.isPresent()) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -70,6 +71,7 @@ public class IMGWDailyPrecipitationsController {
             @PathVariable String dateString,
             HttpServletRequest request
     ) {
+        logger.info("Getting maxmin precipitation data: date = " + dateString);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate date = LocalDate.parse(dateString, formatter);
 
