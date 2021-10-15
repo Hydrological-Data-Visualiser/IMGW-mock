@@ -1,11 +1,14 @@
 package pl.edu.agh.imgwmock.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import pl.edu.agh.imgwmock.model.DailyPrecipitation;
 import pl.edu.agh.imgwmock.model.Station;
 import pl.edu.agh.imgwmock.repository.StationRepository;
 import pl.edu.agh.imgwmock.utils.CSVUtils;
@@ -17,6 +20,7 @@ import java.util.Optional;
 @Controller
 public class IMGWStationsController {
     private final StationRepository stationRepository;
+    Logger logger = LoggerFactory.getLogger(IMGWStationsController.class);
 
     public IMGWStationsController(StationRepository stationRepository) {
         this.stationRepository = stationRepository;
@@ -24,11 +28,16 @@ public class IMGWStationsController {
 
     @CrossOrigin
     @GetMapping("/stations/addAll")
-    public ResponseEntity<List<Station>> addStations(HttpServletRequest request) {
+    public ResponseEntity<String> addStations(HttpServletRequest request) {
+        logger.info("Adding stations");
         stationRepository.deleteAll();
+        int added = 0;
         List<Station> stations = CSVUtils.getStationListFromCSV("src/main/resources/wykaz_stacji.csv");
-        stationRepository.saveAll(stations);
-        return new ResponseEntity<List<Station>>(stations, HttpStatus.OK);
+        for (Station station : stations) {
+            stationRepository.save(station);
+            logger.info("Added " + ++added + "/" + stations.size());
+        }
+        return new ResponseEntity<>("Added " + stations.size() + " records", HttpStatus.OK);
     }
 
     @CrossOrigin
@@ -37,6 +46,7 @@ public class IMGWStationsController {
             @RequestParam(value = "id", required = false) Optional<Long> id,
             HttpServletRequest request
     ) {
+        logger.info("Getting station data: stationId = " + id.toString());
         if (id.isPresent()) {
             Optional<Station> station = stationRepository.findById(id.get());
             if (station.isPresent()) {
