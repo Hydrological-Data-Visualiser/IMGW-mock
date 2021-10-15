@@ -18,8 +18,8 @@ public class CSVUtils {
             List<String[]> csvRecords = reader.readAll();
 
             csvRecords.forEach(record -> {
-                // get only stations with id % 11 by now
-                if (Long.parseLong(record[0]) % 11 == 0) {
+                // get only stations with id % 6 by now
+                if (Long.parseLong(record[0]) % 6 == 0) {
                     DailyPrecipitation dailyPrecipitation = new DailyPrecipitation(
                             Long.parseLong(record[0]),
                             record[1],
@@ -42,8 +42,8 @@ public class CSVUtils {
             List<String[]> csvRecords = reader.readAll();
 
             csvRecords.forEach(record -> {
-                // get precipitation from stations with id % 11 by now
-                if (Integer.parseInt(record[0]) % 11 == 0) {
+                // get precipitation from stations with id % 6 by now
+                if (Integer.parseInt(record[0]) % 6 == 0) {
                     stations.add(new Station(
                             Long.parseLong(record[0]),
                             record[1],

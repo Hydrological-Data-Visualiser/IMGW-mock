@@ -1,11 +1,10 @@
 package pl.edu.agh.imgwmock.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import pl.edu.agh.imgwmock.model.DailyPrecipitation;
 import pl.edu.agh.imgwmock.repository.DailyPrecipitationRepository;
 import pl.edu.agh.imgwmock.utils.CSVUtils;
@@ -15,10 +14,12 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 public class IMGWDailyPrecipitationsController {
     private final DailyPrecipitationRepository dailyPrecipitationRepository;
+    Logger logger = LoggerFactory.getLogger(IMGWDailyPrecipitationsController.class);
 
     public IMGWDailyPrecipitationsController(DailyPrecipitationRepository dailyPrecipitationRepository) {
         this.dailyPrecipitationRepository = dailyPrecipitationRepository;
@@ -26,11 +27,16 @@ public class IMGWDailyPrecipitationsController {
 
     @CrossOrigin
     @GetMapping("/precipitation/addPrecipitation")
-    public ResponseEntity<List<DailyPrecipitation>> addPrecipitation(HttpServletRequest request) {
+    public ResponseEntity<String> addPrecipitation(HttpServletRequest request) {
+        logger.info("Adding precipitations");
         dailyPrecipitationRepository.deleteAll();
+        int added = 0;
         List<DailyPrecipitation> dailyPrecipitations = CSVUtils.getDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
-        dailyPrecipitationRepository.saveAll(dailyPrecipitations);
-        return new ResponseEntity<>(dailyPrecipitations, HttpStatus.OK);
+        for (DailyPrecipitation dailyPrecipitation : dailyPrecipitations) {
+            dailyPrecipitationRepository.save(dailyPrecipitation);
+            logger.info("Added " + ++added + "/" + dailyPrecipitations.size());
+        }
+        return new ResponseEntity<>("Added " + dailyPrecipitations.size() + " records", HttpStatus.OK);
     }
 
     @CrossOrigin
@@ -54,6 +60,27 @@ public class IMGWDailyPrecipitationsController {
             return new ResponseEntity<List<DailyPrecipitation>>(dailyPrecipitationRepository.findByDate(date.get()), HttpStatus.OK);
         } else {
             return new ResponseEntity<List<DailyPrecipitation>>(dailyPrecipitationRepository.findAll(), HttpStatus.OK);
+        }
+    }
+
+    //returning 2-element list, because it is easier, no need to create another model class
+    @CrossOrigin
+    @GetMapping("/precipitation/{dateString}/maxmin")
+    public ResponseEntity<List<Double>> getMaxMinDailyPrecipitationsInDay(
+            @PathVariable String dateString,
+            HttpServletRequest request
+    ) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate date = LocalDate.parse(dateString, formatter);
+
+        List<DailyPrecipitation> dailyPrecipitations = dailyPrecipitationRepository.findByDate(date);
+        if (dailyPrecipitations.size() > 0) {
+            List<Double> sorted = dailyPrecipitations.stream().map(DailyPrecipitation::getDailyPrecipitation).sorted().collect(Collectors.toList());
+            Double minValue = sorted.get(0);
+            Double maxValue = sorted.get(sorted.size() - 1);
+            return new ResponseEntity<List<Double>>(List.of(minValue, maxValue), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<List<Double>>(List.of(), HttpStatus.OK);
         }
     }
 }
