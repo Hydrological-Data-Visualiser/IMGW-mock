@@ -4,12 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
-public class RiverPoint {
+public class Polygon {
     private Long id;
-    private Double latitude;
-    private Double longitude;
+    private List<Double[]> points;
     private Double value;
 }
