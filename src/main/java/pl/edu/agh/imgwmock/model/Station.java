@@ -21,7 +21,7 @@ public class Station {
     @Column(name = "id", nullable = false)
     private Long id;
     private String name;
-    private int code;
-    private double latitude;
-    private double longitude;
+    private Integer code;
+    private Double latitude;
+    private Double longitude;
 }

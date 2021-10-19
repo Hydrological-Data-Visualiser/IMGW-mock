@@ -22,7 +22,7 @@ public class DailyPrecipitation {
     private Long stationId;
     private String stationName;
     private LocalDate date;
-    private double dailyPrecipitation;
+    private Double dailyPrecipitation;
 
     public DailyPrecipitation(Long stationId, String stationName, LocalDate date, double dailyPrecipitation) {
         this.stationId = stationId;
