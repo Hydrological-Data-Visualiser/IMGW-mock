@@ -76,8 +76,8 @@ public class CSVUtils {
             csvRecords.forEach(record -> {
                 kocinka.add(new RiverPoint(
                         lastId.getAndSet(lastId.get() + 1),
-                        Double.parseDouble(record[0]),
                         Double.parseDouble(record[1]),
+                        Double.parseDouble(record[0]),
                         random.nextDouble() * 5
                 ));
             });
