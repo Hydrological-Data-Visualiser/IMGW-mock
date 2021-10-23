@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import pl.edu.agh.imgwmock.model.DailyPrecipitation;
 import pl.edu.agh.imgwmock.model.Station;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Controller
+@RequestMapping("/imgw")
 public class IMGWStationsController {
     private final StationRepository stationRepository;
     Logger logger = LoggerFactory.getLogger(IMGWStationsController.class);

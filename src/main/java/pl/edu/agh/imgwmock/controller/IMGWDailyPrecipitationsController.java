@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.edu.agh.imgwmock.model.DailyPrecipitation;
+import pl.edu.agh.imgwmock.model.DataType;
+import pl.edu.agh.imgwmock.model.Info;
 import pl.edu.agh.imgwmock.repository.DailyPrecipitationRepository;
 import pl.edu.agh.imgwmock.utils.CSVUtils;
 
@@ -14,9 +16,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
+@RequestMapping("/imgw")
 public class IMGWDailyPrecipitationsController {
     private final DailyPrecipitationRepository dailyPrecipitationRepository;
     Logger logger = LoggerFactory.getLogger(IMGWDailyPrecipitationsController.class);
@@ -26,7 +28,14 @@ public class IMGWDailyPrecipitationsController {
     }
 
     @CrossOrigin
-    @GetMapping("/precipitation/addPrecipitation")
+    @GetMapping("/info")
+    public ResponseEntity<Info> getInfo(HttpServletRequest request) {
+        Info info = new Info("IMGW", DataType.POINTS);
+        return new ResponseEntity<>(info, HttpStatus.OK);
+    }
+
+    @CrossOrigin
+    @GetMapping("/data/addPrecipitation")
     public ResponseEntity<String> addPrecipitation(HttpServletRequest request) {
         logger.info("Adding precipitations");
         dailyPrecipitationRepository.deleteAll();
@@ -40,7 +49,7 @@ public class IMGWDailyPrecipitationsController {
     }
 
     @CrossOrigin
-    @GetMapping("/precipitation")
+    @GetMapping("/data")
     public ResponseEntity<List<DailyPrecipitation>> getDailyPrecipitationsById(
             @RequestParam(value = "stationId", required = false) Optional<Long> stationId,
             @RequestParam(value = "date", required = false) Optional<String> dateString,
@@ -64,25 +73,25 @@ public class IMGWDailyPrecipitationsController {
         }
     }
 
-    //returning 2-element list, because it is easier, no need to create another model class
-    @CrossOrigin
-    @GetMapping("/precipitation/{dateString}/maxmin")
-    public ResponseEntity<List<Double>> getMaxMinDailyPrecipitationsInDay(
-            @PathVariable String dateString,
-            HttpServletRequest request
-    ) {
-        logger.info("Getting maxmin precipitation data: date = " + dateString);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate date = LocalDate.parse(dateString, formatter);
-
-        List<DailyPrecipitation> dailyPrecipitations = dailyPrecipitationRepository.findByDate(date);
-        if (dailyPrecipitations.size() > 0) {
-            List<Double> sorted = dailyPrecipitations.stream().map(DailyPrecipitation::getDailyPrecipitation).sorted().collect(Collectors.toList());
-            Double minValue = sorted.get(0);
-            Double maxValue = sorted.get(sorted.size() - 1);
-            return new ResponseEntity<List<Double>>(List.of(minValue, maxValue), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<List<Double>>(List.of(), HttpStatus.OK);
-        }
-    }
+//    //returning 2-element list, because it is easier, no need to create another model class
+//    @CrossOrigin
+//    @GetMapping("/data/{dateString}/maxmin")
+//    public ResponseEntity<List<Double>> getMaxMinDailyPrecipitationsInDay(
+//            @PathVariable String dateString,
+//            HttpServletRequest request
+//    ) {
+//        logger.info("Getting maxmin precipitation data: date = " + dateString);
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+//        LocalDate date = LocalDate.parse(dateString, formatter);
+//
+//        List<DailyPrecipitation> dailyPrecipitations = dailyPrecipitationRepository.findByDate(date);
+//        if (dailyPrecipitations.size() > 0) {
+//            List<Double> sorted = dailyPrecipitations.stream().map(DailyPrecipitation::getDailyPrecipitation).sorted().collect(Collectors.toList());
+//            Double minValue = sorted.get(0);
+//            Double maxValue = sorted.get(sorted.size() - 1);
+//            return new ResponseEntity<List<Double>>(List.of(minValue, maxValue), HttpStatus.OK);
+//        } else {
+//            return new ResponseEntity<List<Double>>(List.of(), HttpStatus.OK);
+//        }
+//    }
 }
