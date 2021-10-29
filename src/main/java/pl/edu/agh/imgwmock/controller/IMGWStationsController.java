@@ -16,6 +16,7 @@ import pl.edu.agh.imgwmock.utils.CSVUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Controller
@@ -49,8 +50,9 @@ public class IMGWStationsController {
             HttpServletRequest request
     ) {
         logger.info("Getting station data: stationId = " + id.toString());
+        List<Station> stations = CSVUtils.getStationListFromCSV("src/main/resources/wykaz_stacji.csv");
         if (id.isPresent()) {
-            Optional<Station> station = stationRepository.findById(id.get());
+            Optional<Station> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
             if (station.isPresent()) {
                 return new ResponseEntity<List<Station>>(List.of(station.get()), HttpStatus.OK);
             } else {
@@ -59,7 +61,7 @@ public class IMGWStationsController {
             }
         } else {
             // no id - get all stations from database
-            return new ResponseEntity<List<Station>>(stationRepository.findAll(), HttpStatus.OK);
+            return new ResponseEntity<List<Station>>(stations, HttpStatus.OK);
         }
     }
 }

@@ -15,7 +15,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/imgw")
@@ -62,36 +64,21 @@ public class IMGWDailyPrecipitationsController {
             date = Optional.of(LocalDate.parse(dateString.get(), formatter));
         }
 
+        List<DailyPrecipitation> dailyPrecipitations = CSVUtils.getDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
+        List<DailyPrecipitation> result;
         if (stationId.isPresent() && date.isPresent()) {
-            return new ResponseEntity<List<DailyPrecipitation>>(dailyPrecipitationRepository.findByStationIdAndDate(stationId.get(), date.get()), HttpStatus.OK);
+            Optional<LocalDate> finalDate = date;
+            result = dailyPrecipitations.stream().filter(rain -> Objects.equals(rain.getStationId(), stationId.get()) && rain.getDate().equals(finalDate.get())).collect(Collectors.toList());
+            return new ResponseEntity<List<DailyPrecipitation>>(result, HttpStatus.OK);
         } else if (stationId.isPresent()) {
-            return new ResponseEntity<List<DailyPrecipitation>>(dailyPrecipitationRepository.findByStationId(stationId.get()), HttpStatus.OK);
+            result = dailyPrecipitations.stream().filter(rain -> Objects.equals(rain.getStationId(), stationId.get())).collect(Collectors.toList());
+            return new ResponseEntity<List<DailyPrecipitation>>(result, HttpStatus.OK);
         } else if (date.isPresent()) {
-            return new ResponseEntity<List<DailyPrecipitation>>(dailyPrecipitationRepository.findByDate(date.get()), HttpStatus.OK);
+            Optional<LocalDate> finalDate = date;
+            result = dailyPrecipitations.stream().filter(rain -> rain.getDate().equals(finalDate.get())).collect(Collectors.toList());
+            return new ResponseEntity<List<DailyPrecipitation>>(result, HttpStatus.OK);
         } else {
-            return new ResponseEntity<List<DailyPrecipitation>>(dailyPrecipitationRepository.findAll(), HttpStatus.OK);
+            return new ResponseEntity<List<DailyPrecipitation>>(dailyPrecipitations, HttpStatus.OK);
         }
     }
-
-//    //returning 2-element list, because it is easier, no need to create another model class
-//    @CrossOrigin
-//    @GetMapping("/data/{dateString}/maxmin")
-//    public ResponseEntity<List<Double>> getMaxMinDailyPrecipitationsInDay(
-//            @PathVariable String dateString,
-//            HttpServletRequest request
-//    ) {
-//        logger.info("Getting maxmin precipitation data: date = " + dateString);
-//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-//        LocalDate date = LocalDate.parse(dateString, formatter);
-//
-//        List<DailyPrecipitation> dailyPrecipitations = dailyPrecipitationRepository.findByDate(date);
-//        if (dailyPrecipitations.size() > 0) {
-//            List<Double> sorted = dailyPrecipitations.stream().map(DailyPrecipitation::getDailyPrecipitation).sorted().collect(Collectors.toList());
-//            Double minValue = sorted.get(0);
-//            Double maxValue = sorted.get(sorted.size() - 1);
-//            return new ResponseEntity<List<Double>>(List.of(minValue, maxValue), HttpStatus.OK);
-//        } else {
-//            return new ResponseEntity<List<Double>>(List.of(), HttpStatus.OK);
-//        }
-//    }
 }
