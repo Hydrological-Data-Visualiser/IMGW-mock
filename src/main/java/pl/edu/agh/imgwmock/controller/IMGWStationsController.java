@@ -29,19 +29,19 @@ public class IMGWStationsController {
         this.stationRepository = stationRepository;
     }
 
-    @CrossOrigin
-    @GetMapping("/stations/addAll")
-    public ResponseEntity<String> addStations(HttpServletRequest request) {
-        logger.info("Adding stations");
-        stationRepository.deleteAll();
-        int added = 0;
-        List<Station> stations = CSVUtils.getStationListFromCSV("src/main/resources/wykaz_stacji.csv");
-        for (Station station : stations) {
-            stationRepository.save(station);
-            logger.info("Added " + ++added + "/" + stations.size());
-        }
-        return new ResponseEntity<>("Added " + stations.size() + " records", HttpStatus.OK);
-    }
+//    @CrossOrigin
+//    @GetMapping("/stations/addAll")
+//    public ResponseEntity<String> addStations(HttpServletRequest request) {
+//        logger.info("Adding stations");
+//        stationRepository.deleteAll();
+//        int added = 0;
+//        List<Station> stations = CSVUtils.getStationListFromCSV("src/main/resources/wykaz_stacji.csv");
+//        for (Station station : stations) {
+//            stationRepository.save(station);
+//            logger.info("Added " + ++added + "/" + stations.size());
+//        }
+//        return new ResponseEntity<>("Added " + stations.size() + " records", HttpStatus.OK);
+//    }
 
     @CrossOrigin
     @GetMapping("/stations")
@@ -54,14 +54,14 @@ public class IMGWStationsController {
         if (id.isPresent()) {
             Optional<Station> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
             if (station.isPresent()) {
-                return new ResponseEntity<List<Station>>(List.of(station.get()), HttpStatus.OK);
+                return new ResponseEntity<>(List.of(station.get()), HttpStatus.OK);
             } else {
                 //not found
-                return new ResponseEntity<List<Station>>(List.of(), HttpStatus.OK);
+                return new ResponseEntity<>(List.of(), HttpStatus.OK);
             }
         } else {
             // no id - get all stations from database
-            return new ResponseEntity<List<Station>>(stations, HttpStatus.OK);
+            return new ResponseEntity<>(stations, HttpStatus.OK);
         }
     }
 }

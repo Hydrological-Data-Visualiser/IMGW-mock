@@ -9,7 +9,7 @@ import pl.edu.agh.imgwmock.model.DailyPrecipitation;
 import pl.edu.agh.imgwmock.model.DataType;
 import pl.edu.agh.imgwmock.model.Info;
 import pl.edu.agh.imgwmock.repository.DailyPrecipitationRepository;
-import pl.edu.agh.imgwmock.utils.CSVUtils;
+import pl.edu.agh.imgwmock.utils.ImgwUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
@@ -36,19 +36,19 @@ public class IMGWDailyPrecipitationsController {
         return new ResponseEntity<>(info, HttpStatus.OK);
     }
 
-    @CrossOrigin
-    @GetMapping("/data/addPrecipitation")
-    public ResponseEntity<String> addPrecipitation(HttpServletRequest request) {
-        logger.info("Adding precipitations");
-        dailyPrecipitationRepository.deleteAll();
-        int added = 0;
-        List<DailyPrecipitation> dailyPrecipitations = CSVUtils.getDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
-        for (DailyPrecipitation dailyPrecipitation : dailyPrecipitations) {
-            dailyPrecipitationRepository.save(dailyPrecipitation);
-            logger.info("Added " + ++added + "/" + dailyPrecipitations.size());
-        }
-        return new ResponseEntity<>("Added " + dailyPrecipitations.size() + " records", HttpStatus.OK);
-    }
+//    @CrossOrigin
+//    @GetMapping("/data/addPrecipitation")
+//    public ResponseEntity<String> addPrecipitation(HttpServletRequest request) {
+//        logger.info("Adding precipitations");
+//        dailyPrecipitationRepository.deleteAll();
+//        int added = 0;
+//        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
+//        for (DailyPrecipitation dailyPrecipitation : dailyPrecipitations) {
+//            dailyPrecipitationRepository.save(dailyPrecipitation);
+//            logger.info("Added " + ++added + "/" + dailyPrecipitations.size());
+//        }
+//        return new ResponseEntity<>("Added " + dailyPrecipitations.size() + " records", HttpStatus.OK);
+//    }
 
     @CrossOrigin
     @GetMapping("/data")
@@ -64,21 +64,21 @@ public class IMGWDailyPrecipitationsController {
             date = Optional.of(LocalDate.parse(dateString.get(), formatter));
         }
 
-        List<DailyPrecipitation> dailyPrecipitations = CSVUtils.getDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
+        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
         List<DailyPrecipitation> result;
         if (stationId.isPresent() && date.isPresent()) {
             Optional<LocalDate> finalDate = date;
             result = dailyPrecipitations.stream().filter(rain -> Objects.equals(rain.getStationId(), stationId.get()) && rain.getDate().equals(finalDate.get())).collect(Collectors.toList());
-            return new ResponseEntity<List<DailyPrecipitation>>(result, HttpStatus.OK);
+            return new ResponseEntity<>(result, HttpStatus.OK);
         } else if (stationId.isPresent()) {
             result = dailyPrecipitations.stream().filter(rain -> Objects.equals(rain.getStationId(), stationId.get())).collect(Collectors.toList());
-            return new ResponseEntity<List<DailyPrecipitation>>(result, HttpStatus.OK);
+            return new ResponseEntity<>(result, HttpStatus.OK);
         } else if (date.isPresent()) {
             Optional<LocalDate> finalDate = date;
             result = dailyPrecipitations.stream().filter(rain -> rain.getDate().equals(finalDate.get())).collect(Collectors.toList());
-            return new ResponseEntity<List<DailyPrecipitation>>(result, HttpStatus.OK);
+            return new ResponseEntity<>(result, HttpStatus.OK);
         } else {
-            return new ResponseEntity<List<DailyPrecipitation>>(dailyPrecipitations, HttpStatus.OK);
+            return new ResponseEntity<>(dailyPrecipitations, HttpStatus.OK);
         }
     }
 }
