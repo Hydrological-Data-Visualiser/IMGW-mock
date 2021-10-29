@@ -25,8 +25,6 @@ public class CSVUtils {
             List<String[]> csvRecords = reader.readAll();
 
             csvRecords.forEach(record -> {
-                // get only stations with id % 6 by now
-                if (Long.parseLong(record[0]) % 6 == 0) {
                     DailyPrecipitation dailyPrecipitation = new DailyPrecipitation(
                             Long.parseLong(record[0]),
                             record[1],
@@ -34,7 +32,6 @@ public class CSVUtils {
                             Double.parseDouble(record[5])
                     );
                     dailyPrecipitations.add(dailyPrecipitation);
-                }
             });
             return dailyPrecipitations;
         } catch (IOException | CsvException e) {
@@ -49,8 +46,6 @@ public class CSVUtils {
             List<String[]> csvRecords = reader.readAll();
 
             csvRecords.forEach(record -> {
-                // get precipitation from stations with id % 6 by now
-                if (Integer.parseInt(record[0]) % 6 == 0) {
                     stations.add(new Station(
                             Long.parseLong(record[0]),
                             record[1],
@@ -58,7 +53,6 @@ public class CSVUtils {
                             Double.parseDouble(record[3]),
                             Double.parseDouble(record[4])
                     ));
-                }
             });
             return stations;
         } catch (IOException | CsvException e) {
