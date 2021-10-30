@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import pl.edu.agh.imgwmock.model.DataType;
 import pl.edu.agh.imgwmock.model.Info;
 import pl.edu.agh.imgwmock.model.RiverPoint;
-import pl.edu.agh.imgwmock.utils.CSVUtils;
+import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -36,7 +36,7 @@ public class KocinkaController {
             @RequestParam(value = "date", required = false) Optional<String> dateString,
             HttpServletRequest request) {
         logger.info("Getting Kocinka");
-        List<RiverPoint> kocinka = CSVUtils.getKocinka("src/main/resources/kocinka.csv");
+        List<RiverPoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv");
         return new ResponseEntity<>(kocinka, HttpStatus.OK);
     }
 }
