@@ -10,12 +10,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import pl.edu.agh.imgwmock.model.*;
-import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 import pl.edu.agh.imgwmock.utils.CSVUtils;
+import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/kocinkaTemperature")
@@ -45,7 +48,17 @@ public class KocinkaTemperatureController {
             @RequestParam(value = "date", required = false) Optional<String> dateString,
             HttpServletRequest request) {
         logger.info("Getting Kocinka");
-        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaTemperatureData();
-        return new ResponseEntity<>(kocinka, HttpStatus.OK);
+        Optional<LocalDate> date = Optional.empty();
+        if (dateString.isPresent()) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            date = Optional.of(LocalDate.parse(dateString.get(), formatter));
+        }
+        List<DailyPrecipitation> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
+        if (date.isPresent()) {
+            Optional<LocalDate> finalDate = date;
+            kocinkaTemperatureData = kocinkaTemperatureData.stream()
+                    .filter(temperature -> temperature.getDate() == finalDate.get()).collect(Collectors.toList());
+        }
+        return new ResponseEntity<>(kocinkaTemperatureData, HttpStatus.OK);
     }
 }
