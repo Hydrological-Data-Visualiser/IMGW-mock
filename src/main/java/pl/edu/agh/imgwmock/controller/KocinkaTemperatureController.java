@@ -16,8 +16,9 @@ import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Controller
@@ -28,37 +29,60 @@ public class KocinkaTemperatureController {
     @CrossOrigin
     @GetMapping("/info")
     public ResponseEntity<Info> getInfo(HttpServletRequest request) {
-        Info info = new Info("Kocinka Points", DataType.POINTS);
+        Info info = new Info("Kocinka Points", DataType.LINE);
         return new ResponseEntity<>(info, HttpStatus.OK);
     }
 
     @CrossOrigin
-    @GetMapping("/stations")
-    public ResponseEntity<List<Station>> getKocinkaStations(
-            @RequestParam(value = "date", required = false) Optional<String> dateString,
-            HttpServletRequest request) {
-        logger.info("Getting Kocinka Stations");
-        List<Station> kocinkaStations = CSVUtils.getStationListFromCSV("src/main/resources/kocinka/kocinka_stations.csv");
-        return new ResponseEntity<>(kocinkaStations, HttpStatus.OK);
-    }
-
-    @CrossOrigin
     @GetMapping("/data")
-    public ResponseEntity<List<DailyPrecipitation>> getKocinka(
-            @RequestParam(value = "date", required = false) Optional<String> dateString,
+    public ResponseEntity<List<RiverPoint>> getKocinka(
+            @RequestParam(value = "date", required = true) String dateString,
             HttpServletRequest request) {
         logger.info("Getting Kocinka");
-        Optional<LocalDate> date = Optional.empty();
-        if (dateString.isPresent()) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            date = Optional.of(LocalDate.parse(dateString.get(), formatter));
-        }
         List<DailyPrecipitation> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
-        if (date.isPresent()) {
-            Optional<LocalDate> finalDate = date;
-            kocinkaTemperatureData = kocinkaTemperatureData.stream()
-                    .filter(temperature -> temperature.getDate() == finalDate.get()).collect(Collectors.toList());
-        }
-        return new ResponseEntity<>(kocinkaTemperatureData, HttpStatus.OK);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate date = LocalDate.parse(dateString, formatter);
+
+        kocinkaTemperatureData = kocinkaTemperatureData.stream()
+                .filter(temperature -> temperature.getDate().equals(date)).collect(Collectors.toList());
+
+        List<RiverPoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv");
+        List<DailyPrecipitation> finalKocinkaTemperatureData = kocinkaTemperatureData;
+        List<RiverPoint> result = new ArrayList<>();
+
+        kocinka.forEach(point -> {
+                    Station closestStation = findClosestStation(point);
+                    List<DailyPrecipitation> values = finalKocinkaTemperatureData.stream()
+                            .filter(temp -> temp.getDate().equals(date) && temp.getStationId().equals(closestStation.getId()))
+                            .collect(Collectors.toList());
+                    if (values.size() > 0) {
+                        result.add(new RiverPoint(
+                                point.getId(),
+                                point.getLatitude(),
+                                point.getLatitude(),
+                                values.get(0).getDailyPrecipitation())
+                        );
+                    }
+                }
+        );
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    private Station findClosestStation(RiverPoint point) {
+        List<Station> kocinkaStations = CSVUtils.getStationListFromCSV("src/main/resources/kocinka/kocinka_stations.csv");
+        AtomicReference<Double> smallestDistance = new AtomicReference<>(Double.MAX_VALUE);
+        AtomicReference<Station> closestStation = new AtomicReference<>();
+
+        kocinkaStations.forEach(station -> {
+            Double distanceSquare = Math.abs(station.getLatitude() - point.getLatitude()) + Math.abs(station.getLongitude() - point.getLongitude());
+            if (distanceSquare < smallestDistance.get()) {
+                smallestDistance.set(distanceSquare);
+                closestStation.set(station);
+            }
+        });
+
+        return closestStation.get();
     }
 }

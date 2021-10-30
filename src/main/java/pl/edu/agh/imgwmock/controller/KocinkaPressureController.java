@@ -63,6 +63,7 @@ public class KocinkaPressureController {
             Optional<LocalDate> finalDate = date;
             kocinka = kocinka.stream().filter(pressure -> pressure.getDate() == finalDate.get()).collect(Collectors.toList());
         }
+
         return new ResponseEntity<>(kocinka, HttpStatus.OK);
     }
 }
