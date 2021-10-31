@@ -60,7 +60,7 @@ public class KocinkaTemperatureController {
                         result.add(new RiverPoint(
                                 point.getId(),
                                 point.getLatitude(),
-                                point.getLatitude(),
+                                point.getLongitude(),
                                 values.get(0).getDailyPrecipitation())
                         );
                     }
