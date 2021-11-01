@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -62,6 +63,13 @@ public class KocinkaTemperatureController {
                                 point.getLatitude(),
                                 point.getLongitude(),
                                 values.get(0).getDailyPrecipitation())
+                        );
+                    } else {
+                        result.add(new RiverPoint(
+                                point.getId(),
+                                point.getLatitude(),
+                                point.getLongitude(),
+                                null)
                         );
                     }
                 }
