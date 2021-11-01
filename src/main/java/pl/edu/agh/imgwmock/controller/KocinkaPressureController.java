@@ -17,8 +17,8 @@ import pl.edu.agh.imgwmock.utils.CSVUtils;
 import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -52,16 +52,18 @@ public class KocinkaPressureController {
             HttpServletRequest request) {
         logger.info("Getting Kocinka");
 
-        Optional<LocalDate> date = Optional.empty();
+        Optional<Instant> date = Optional.empty();
         if (dateString.isPresent()) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            date = Optional.of(LocalDate.parse(dateString.get(), formatter));
+            date = Optional.of(Instant.parse(dateString.get()));
         }
 
         List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData();
         if (date.isPresent()) {
-            Optional<LocalDate> finalDate = date;
-            kocinka = kocinka.stream().filter(pressure -> pressure.getDate() == finalDate.get()).collect(Collectors.toList());
+            Optional<Instant> finalDate = date;
+            kocinka = kocinka.stream().filter(pressure ->
+                    pressure.getDate().atZone(ZoneId.systemDefault()).toLocalDate()
+                            .equals(finalDate.get().atZone(ZoneId.systemDefault()).toLocalDate())
+            ).collect(Collectors.toList());
         }
 
         return new ResponseEntity<>(kocinka, HttpStatus.OK);

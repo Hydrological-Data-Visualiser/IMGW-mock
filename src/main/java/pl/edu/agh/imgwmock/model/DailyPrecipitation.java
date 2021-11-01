@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.time.Instant;
 import java.time.LocalDate;
 
 @Entity
@@ -21,13 +22,6 @@ public class DailyPrecipitation {
     private Long id;
     private Long stationId;
     private String stationName;
-    private LocalDate date;
-    private Double dailyPrecipitation;
-
-    public DailyPrecipitation(Long stationId, String stationName, LocalDate date, double dailyPrecipitation) {
-        this.stationId = stationId;
-        this.stationName = stationName;
-        this.date = date;
-        this.dailyPrecipitation = dailyPrecipitation;
-    }
+    private Instant date;
+    private Double value;
 }

@@ -14,8 +14,7 @@ import pl.edu.agh.imgwmock.utils.CSVUtils;
 import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -35,21 +34,20 @@ public class KocinkaTemperatureController {
 
     @CrossOrigin
     @GetMapping("/data")
-    public ResponseEntity<List<RiverPoint>> getKocinka(
+    public ResponseEntity<List<PolylinePoint>> getKocinka(
             @RequestParam(value = "date", required = true) String dateString,
             HttpServletRequest request) {
         logger.info("Getting Kocinka");
         List<DailyPrecipitation> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate date = LocalDate.parse(dateString, formatter);
+        Instant date = Instant.parse(dateString);
 
         kocinkaTemperatureData = kocinkaTemperatureData.stream()
                 .filter(temperature -> temperature.getDate().equals(date)).collect(Collectors.toList());
 
-        List<RiverPoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv");
+        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv");
         List<DailyPrecipitation> finalKocinkaTemperatureData = kocinkaTemperatureData;
-        List<RiverPoint> result = new ArrayList<>();
+        List<PolylinePoint> result = new ArrayList<>();
 
         kocinka.forEach(point -> {
                     Station closestStation = findClosestStation(point);
@@ -57,18 +55,22 @@ public class KocinkaTemperatureController {
                             .filter(temp -> temp.getDate().equals(date) && temp.getStationId().equals(closestStation.getId()))
                             .collect(Collectors.toList());
                     if (values.size() > 0) {
-                        result.add(new RiverPoint(
-                                point.getId(),
-                                point.getLatitude(),
-                                point.getLongitude(),
-                                values.get(0).getDailyPrecipitation())
+                        result.add(new PolylinePoint(
+                                        point.getId(),
+                                        point.getLatitude(),
+                                        point.getLongitude(),
+                                        values.get(0).getValue(),
+                                        values.get(0).getDate()
+                                )
                         );
                     } else {
-                        result.add(new RiverPoint(
-                                point.getId(),
-                                point.getLatitude(),
-                                point.getLongitude(),
-                                null)
+                        result.add(new PolylinePoint(
+                                        point.getId(),
+                                        point.getLatitude(),
+                                        point.getLongitude(),
+                                        null,
+                                        date
+                                )
                         );
                     }
                 }
@@ -77,7 +79,7 @@ public class KocinkaTemperatureController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    private Station findClosestStation(RiverPoint point) {
+    private Station findClosestStation(PolylinePoint point) {
         List<Station> kocinkaStations = CSVUtils.getStationListFromCSV("src/main/resources/kocinka/kocinka_stations.csv");
         AtomicReference<Double> smallestDistance = new AtomicReference<>(Double.MAX_VALUE);
         AtomicReference<Station> closestStation = new AtomicReference<>();

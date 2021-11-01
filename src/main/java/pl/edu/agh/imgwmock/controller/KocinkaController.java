@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import pl.edu.agh.imgwmock.model.DataType;
 import pl.edu.agh.imgwmock.model.Info;
-import pl.edu.agh.imgwmock.model.RiverPoint;
+import pl.edu.agh.imgwmock.model.PolylinePoint;
 import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,11 +32,11 @@ public class KocinkaController {
 
     @CrossOrigin
     @GetMapping("/data")
-    public ResponseEntity<List<RiverPoint>> getKocinka(
+    public ResponseEntity<List<PolylinePoint>> getKocinka(
             @RequestParam(value = "date", required = false) Optional<String> dateString,
             HttpServletRequest request) {
         logger.info("Getting Kocinka");
-        List<RiverPoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv");
+        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv");
         return new ResponseEntity<>(kocinka, HttpStatus.OK);
     }
 }

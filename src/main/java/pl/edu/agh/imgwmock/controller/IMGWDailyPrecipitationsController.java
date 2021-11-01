@@ -12,6 +12,7 @@ import pl.edu.agh.imgwmock.repository.DailyPrecipitationRepository;
 import pl.edu.agh.imgwmock.utils.ImgwUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -36,20 +37,6 @@ public class IMGWDailyPrecipitationsController {
         return new ResponseEntity<>(info, HttpStatus.OK);
     }
 
-//    @CrossOrigin
-//    @GetMapping("/data/addPrecipitation")
-//    public ResponseEntity<String> addPrecipitation(HttpServletRequest request) {
-//        logger.info("Adding precipitations");
-//        dailyPrecipitationRepository.deleteAll();
-//        int added = 0;
-//        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
-//        for (DailyPrecipitation dailyPrecipitation : dailyPrecipitations) {
-//            dailyPrecipitationRepository.save(dailyPrecipitation);
-//            logger.info("Added " + ++added + "/" + dailyPrecipitations.size());
-//        }
-//        return new ResponseEntity<>("Added " + dailyPrecipitations.size() + " records", HttpStatus.OK);
-//    }
-
     @CrossOrigin
     @GetMapping("/data")
     public ResponseEntity<List<DailyPrecipitation>> getDailyPrecipitationsById(
@@ -58,23 +45,22 @@ public class IMGWDailyPrecipitationsController {
             HttpServletRequest request
     ) {
         logger.info("Getting precipitation data: stationId = " + stationId.toString() + " date = " + dateString.toString());
-        Optional<LocalDate> date = Optional.empty();
+        Optional<Instant> date = Optional.empty();
         if (dateString.isPresent()) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            date = Optional.of(LocalDate.parse(dateString.get(), formatter));
+            date = Optional.of(Instant.parse(dateString.get()));
         }
 
         List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
         List<DailyPrecipitation> result;
         if (stationId.isPresent() && date.isPresent()) {
-            Optional<LocalDate> finalDate = date;
+            Optional<Instant> finalDate = date;
             result = dailyPrecipitations.stream().filter(rain -> Objects.equals(rain.getStationId(), stationId.get()) && rain.getDate().equals(finalDate.get())).collect(Collectors.toList());
             return new ResponseEntity<>(result, HttpStatus.OK);
         } else if (stationId.isPresent()) {
             result = dailyPrecipitations.stream().filter(rain -> Objects.equals(rain.getStationId(), stationId.get())).collect(Collectors.toList());
             return new ResponseEntity<>(result, HttpStatus.OK);
         } else if (date.isPresent()) {
-            Optional<LocalDate> finalDate = date;
+            Optional<Instant> finalDate = date;
             result = dailyPrecipitations.stream().filter(rain -> rain.getDate().equals(finalDate.get())).collect(Collectors.toList());
             return new ResponseEntity<>(result, HttpStatus.OK);
         } else {

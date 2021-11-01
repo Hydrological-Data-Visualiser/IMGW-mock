@@ -6,7 +6,7 @@ import pl.edu.agh.imgwmock.model.DailyPrecipitation;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -22,7 +22,8 @@ public class ImgwUtils {
                         lastId.getAndSet(lastId.get() + 1),
                         Long.parseLong(record[0]),
                         record[1],
-                        LocalDate.of(Integer.parseInt(record[2]), Integer.parseInt(record[3]), Integer.parseInt(record[4])),
+                        Instant.parse(record[2] + "-" + record[3] + "-" + record[4] + "T00:00:00Z"),
+//                        LocalDate.of(Integer.parseInt(record[2]), Integer.parseInt(record[3]), Integer.parseInt(record[4])),
                         Double.parseDouble(record[5])
                 );
                 dailyPrecipitations.add(dailyPrecipitation);

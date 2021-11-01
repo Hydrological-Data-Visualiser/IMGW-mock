@@ -29,20 +29,6 @@ public class IMGWStationsController {
         this.stationRepository = stationRepository;
     }
 
-//    @CrossOrigin
-//    @GetMapping("/stations/addAll")
-//    public ResponseEntity<String> addStations(HttpServletRequest request) {
-//        logger.info("Adding stations");
-//        stationRepository.deleteAll();
-//        int added = 0;
-//        List<Station> stations = CSVUtils.getStationListFromCSV("src/main/resources/wykaz_stacji.csv");
-//        for (Station station : stations) {
-//            stationRepository.save(station);
-//            logger.info("Added " + ++added + "/" + stations.size());
-//        }
-//        return new ResponseEntity<>("Added " + stations.size() + " records", HttpStatus.OK);
-//    }
-
     @CrossOrigin
     @GetMapping("/stations")
     public ResponseEntity<List<Station>> getAllStations(
