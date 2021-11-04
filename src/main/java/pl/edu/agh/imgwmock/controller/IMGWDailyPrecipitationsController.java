@@ -12,7 +12,9 @@ import pl.edu.agh.imgwmock.repository.DailyPrecipitationRepository;
 import pl.edu.agh.imgwmock.utils.ImgwUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
@@ -36,46 +38,52 @@ public class IMGWDailyPrecipitationsController {
         return new ResponseEntity<>(info, HttpStatus.OK);
     }
 
-//    @CrossOrigin
-//    @GetMapping("/data/addPrecipitation")
-//    public ResponseEntity<String> addPrecipitation(HttpServletRequest request) {
-//        logger.info("Adding precipitations");
-//        dailyPrecipitationRepository.deleteAll();
-//        int added = 0;
-//        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
-//        for (DailyPrecipitation dailyPrecipitation : dailyPrecipitations) {
-//            dailyPrecipitationRepository.save(dailyPrecipitation);
-//            logger.info("Added " + ++added + "/" + dailyPrecipitations.size());
-//        }
-//        return new ResponseEntity<>("Added " + dailyPrecipitations.size() + " records", HttpStatus.OK);
-//    }
-
     @CrossOrigin
     @GetMapping("/data")
     public ResponseEntity<List<DailyPrecipitation>> getDailyPrecipitationsById(
             @RequestParam(value = "stationId", required = false) Optional<Long> stationId,
             @RequestParam(value = "date", required = false) Optional<String> dateString,
+            @RequestParam(value = "dateFrom", required = false) Optional<String> dateFrom,
+            @RequestParam(value = "dateTo", required = false) Optional<String> dateTo,
             HttpServletRequest request
     ) {
         logger.info("Getting precipitation data: stationId = " + stationId.toString() + " date = " + dateString.toString());
-        Optional<LocalDate> date = Optional.empty();
+
+        Optional<Instant> dateFromOpt = Optional.empty();
+        Optional<Instant> dateToOpt = Optional.empty();
+
+
         if (dateString.isPresent()) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            date = Optional.of(LocalDate.parse(dateString.get(), formatter));
+            dateFromOpt = Optional.of(LocalDate.parse(dateString.get(), formatter).atTime(0, 0, 0).minusSeconds(1).toInstant(ZoneOffset.UTC));
+            dateToOpt = Optional.of(LocalDate.parse(dateString.get(), formatter).atTime(23, 59, 59).toInstant(ZoneOffset.UTC));
+        }
+
+        if (dateFrom.isPresent() && dateTo.isPresent()) {
+            dateFromOpt = Optional.of(Instant.parse(dateFrom.get()));
+            dateToOpt = Optional.of(Instant.parse(dateTo.get()));
         }
 
         List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
         List<DailyPrecipitation> result;
-        if (stationId.isPresent() && date.isPresent()) {
-            Optional<LocalDate> finalDate = date;
-            result = dailyPrecipitations.stream().filter(rain -> Objects.equals(rain.getStationId(), stationId.get()) && rain.getDate().equals(finalDate.get())).collect(Collectors.toList());
+        if (stationId.isPresent() && dateToOpt.isPresent() && dateFromOpt.isPresent()) {
+            Optional<Instant> finalDateToOpt = dateToOpt;
+            Optional<Instant> finalDateFromOpt = dateFromOpt;
+            result = dailyPrecipitations.stream().filter(rain ->
+                    Objects.equals(rain.getStationId(), stationId.get()) &&
+                            rain.getDate().isBefore(finalDateToOpt.get()) &&
+                            rain.getDate().isAfter(finalDateFromOpt.get())).collect(Collectors.toList());
             return new ResponseEntity<>(result, HttpStatus.OK);
         } else if (stationId.isPresent()) {
             result = dailyPrecipitations.stream().filter(rain -> Objects.equals(rain.getStationId(), stationId.get())).collect(Collectors.toList());
             return new ResponseEntity<>(result, HttpStatus.OK);
-        } else if (date.isPresent()) {
-            Optional<LocalDate> finalDate = date;
-            result = dailyPrecipitations.stream().filter(rain -> rain.getDate().equals(finalDate.get())).collect(Collectors.toList());
+        } else if (dateToOpt.isPresent() && dateFromOpt.isPresent()) {
+            Optional<Instant> finalDateToOpt = dateToOpt;
+            Optional<Instant> finalDateFromOpt = dateFromOpt;
+            result = dailyPrecipitations.stream().filter(rain ->
+                    rain.getDate().isAfter(finalDateFromOpt.get()) &&
+                            rain.getDate().isBefore(finalDateToOpt.get())
+            ).collect(Collectors.toList());
             return new ResponseEntity<>(result, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(dailyPrecipitations, HttpStatus.OK);

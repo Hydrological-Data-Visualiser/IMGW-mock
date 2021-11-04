@@ -17,7 +17,9 @@ import pl.edu.agh.imgwmock.utils.CSVUtils;
 import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -49,19 +51,36 @@ public class KocinkaPressureController {
     @GetMapping("/data")
     public ResponseEntity<List<DailyPrecipitation>> getKocinka(
             @RequestParam(value = "date", required = false) Optional<String> dateString,
+            @RequestParam(value = "dateFrom", required = false) Optional<String> dateFrom,
+            @RequestParam(value = "dateTo", required = false) Optional<String> dateTo,
             HttpServletRequest request) {
         logger.info("Getting Kocinka");
 
-        Optional<LocalDate> date = Optional.empty();
+        Optional<Instant> dateFromOpt = Optional.empty();
+        Optional<Instant> dateToOpt = Optional.empty();
+
         if (dateString.isPresent()) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            date = Optional.of(LocalDate.parse(dateString.get(), formatter));
+            dateFromOpt = Optional.of(LocalDate.parse(dateString.get(), formatter).atTime(0, 0, 0).minusSeconds(1).toInstant(ZoneOffset.UTC));
+            dateToOpt = Optional.of(LocalDate.parse(dateString.get(), formatter).atTime(23, 59, 59).toInstant(ZoneOffset.UTC));
+
+        }
+
+        if (dateFrom.isPresent() && dateTo.isPresent()) {
+            dateFromOpt = Optional.of(Instant.parse(dateFrom.get()));
+            dateToOpt = Optional.of(Instant.parse(dateTo.get()));
         }
 
         List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData();
-        if (date.isPresent()) {
-            Optional<LocalDate> finalDate = date;
-            kocinka = kocinka.stream().filter(pressure -> pressure.getDate() == finalDate.get()).collect(Collectors.toList());
+
+        if (dateFromOpt.isPresent() && dateToOpt.isPresent()) {
+            Optional<Instant> finalDateToOpt = dateToOpt;
+            Optional<Instant> finalDateFromOpt = dateFromOpt;
+
+            kocinka = kocinka.stream().filter(pressure ->
+                    pressure.getDate().isBefore(finalDateToOpt.get()) &&
+                            pressure.getDate().isAfter(finalDateFromOpt.get())
+            ).collect(Collectors.toList());
         }
 
         return new ResponseEntity<>(kocinka, HttpStatus.OK);
