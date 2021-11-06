@@ -13,6 +13,7 @@ import pl.edu.agh.imgwmock.model.DailyPrecipitation;
 import pl.edu.agh.imgwmock.model.Station;
 import pl.edu.agh.imgwmock.repository.StationRepository;
 import pl.edu.agh.imgwmock.utils.CSVUtils;
+import pl.edu.agh.imgwmock.utils.ImgwUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -36,7 +37,7 @@ public class IMGWStationsController {
             HttpServletRequest request
     ) {
         logger.info("Getting station data: stationId = " + id.toString());
-        List<Station> stations = CSVUtils.getStationListFromCSV("src/main/resources/wykaz_stacji.csv");
+        List<Station> stations = ImgwUtils.getIMGWStationListFromCSV("src/main/resources/wykaz_stacji.csv");
         if (id.isPresent()) {
             Optional<Station> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
             if (station.isPresent()) {
