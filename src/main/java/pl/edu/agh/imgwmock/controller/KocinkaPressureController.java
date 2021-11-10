@@ -58,10 +58,7 @@ public class KocinkaPressureController {
         Optional<Instant> dateFromOpt = Optional.empty();
         Optional<Instant> dateToOpt = Optional.empty();
 
-        if (instant.isPresent()) {
-            Instant ins = Instant.parse(instant.get());
-            return new ResponseEntity<>(kocinka.stream().filter(data -> data.getDate().equals(ins)).collect(Collectors.toList()), HttpStatus.OK);
-        }
+
 
         if (dateString.isPresent()) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -73,6 +70,10 @@ public class KocinkaPressureController {
         if (dateFrom.isPresent() && dateTo.isPresent()) {
             dateFromOpt = Optional.of(Instant.parse(dateFrom.get()));
             dateToOpt = Optional.of(Instant.parse(dateTo.get()));
+        }
+        if (instant.isPresent()) {
+            dateFromOpt = Optional.of(Instant.parse(instant.get()).minusSeconds(300));
+            dateToOpt = Optional.of(Instant.parse(instant.get()).plusSeconds(300));
         }
 
 

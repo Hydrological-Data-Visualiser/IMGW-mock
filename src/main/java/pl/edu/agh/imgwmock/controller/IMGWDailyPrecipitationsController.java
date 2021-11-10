@@ -54,11 +54,6 @@ public class IMGWDailyPrecipitationsController {
         Optional<Instant> dateToOpt = Optional.empty();
         List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
 
-        if (instant.isPresent()) {
-            Instant ins = Instant.parse(instant.get());
-            return new ResponseEntity<>(dailyPrecipitations.stream().filter(data -> data.getDate().equals(ins)).collect(Collectors.toList()), HttpStatus.OK);
-        }
-
         if (dateString.isPresent()) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             dateFromOpt = Optional.of(LocalDate.parse(dateString.get(), formatter).atTime(0, 0, 0).minusSeconds(1).toInstant(ZoneOffset.UTC));
@@ -68,6 +63,11 @@ public class IMGWDailyPrecipitationsController {
         if (dateFrom.isPresent() && dateTo.isPresent()) {
             dateFromOpt = Optional.of(Instant.parse(dateFrom.get()));
             dateToOpt = Optional.of(Instant.parse(dateTo.get()));
+        }
+
+        if (instant.isPresent()) {
+            dateFromOpt = Optional.of(Instant.parse(instant.get()).minusSeconds(300));
+            dateToOpt = Optional.of(Instant.parse(instant.get()).plusSeconds(300));
         }
 
         List<DailyPrecipitation> result;
