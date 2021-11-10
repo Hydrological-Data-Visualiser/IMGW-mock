@@ -10,14 +10,15 @@ import java.util.Optional;
 @Setter
 @AllArgsConstructor
 public class Info {
+    private String id;
     private String name;
-    private Optional<String> description;
+    private String description;
     private DataType dataType;
     // To be defined later
 
     public Info(String name, DataType dataType) {
         this.name = name;
-        this.description = Optional.empty();
+        this.description = "";
         this.dataType = dataType;
     }
 }
