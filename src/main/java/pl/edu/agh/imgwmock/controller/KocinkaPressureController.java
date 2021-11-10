@@ -30,7 +30,7 @@ public class KocinkaPressureController {
     @CrossOrigin
     @GetMapping("/info")
     public ResponseEntity<Info> getInfo(HttpServletRequest request) {
-        Info info = new Info("Kocinka Points", DataType.POINTS);
+        Info info = new Info("riverPressure", "Kocinka Points", "Kocinka Pressure data", DataType.POINTS);
         return new ResponseEntity<>(info, HttpStatus.OK);
     }
 

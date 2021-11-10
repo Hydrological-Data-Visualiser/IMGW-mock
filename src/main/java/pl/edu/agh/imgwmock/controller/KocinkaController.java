@@ -26,7 +26,7 @@ public class KocinkaController {
     @CrossOrigin
     @GetMapping("/info")
     public ResponseEntity<Info> getInfo(HttpServletRequest request) {
-        Info info = new Info("Kocinka", DataType.LINE);
+        Info info = new Info("river","Kocinka", "Random Kocinka data", DataType.LINE);
         return new ResponseEntity<>(info, HttpStatus.OK);
     }
 
