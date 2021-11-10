@@ -42,12 +42,15 @@ public class KocinkaTemperatureController {
             @RequestParam(value = "date", required = false) Optional<String> dateString,
             @RequestParam(value = "dateFrom", required = false) Optional<String> dateFrom,
             @RequestParam(value = "dateTo", required = false) Optional<String> dateTo,
+            @RequestParam(value = "dateInstant", required = false) Optional<String> instant,
             HttpServletRequest request) {
         logger.info("Getting Kocinka");
         List<DailyPrecipitation> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
 
         Optional<Instant> dateFromOpt = Optional.empty();
         Optional<Instant> dateToOpt = Optional.empty();
+
+
 
         if (dateString.isPresent()) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -58,6 +61,11 @@ public class KocinkaTemperatureController {
         if (dateFrom.isPresent() && dateTo.isPresent()) {
             dateFromOpt = Optional.of(Instant.parse(dateFrom.get()));
             dateToOpt = Optional.of(Instant.parse(dateTo.get()));
+        }
+
+        if (instant.isPresent()) {
+            dateFromOpt = Optional.of(Instant.parse(instant.get()).minusSeconds(1));
+            dateToOpt = Optional.of(Instant.parse(instant.get()).plusSeconds(1));
         }
 
         Optional<Instant> finalDateFromOpt = dateFromOpt;

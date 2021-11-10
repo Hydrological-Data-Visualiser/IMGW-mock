@@ -45,13 +45,19 @@ public class IMGWDailyPrecipitationsController {
             @RequestParam(value = "date", required = false) Optional<String> dateString,
             @RequestParam(value = "dateFrom", required = false) Optional<String> dateFrom,
             @RequestParam(value = "dateTo", required = false) Optional<String> dateTo,
+            @RequestParam(value = "dateInstant", required = false) Optional<String> instant,
             HttpServletRequest request
     ) {
         logger.info("Getting precipitation data: stationId = " + stationId.toString() + " date = " + dateString.toString());
 
         Optional<Instant> dateFromOpt = Optional.empty();
         Optional<Instant> dateToOpt = Optional.empty();
+        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
 
+        if (instant.isPresent()) {
+            Instant ins = Instant.parse(instant.get());
+            return new ResponseEntity<>(dailyPrecipitations.stream().filter(data -> data.getDate().equals(ins)).collect(Collectors.toList()), HttpStatus.OK);
+        }
 
         if (dateString.isPresent()) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -64,7 +70,6 @@ public class IMGWDailyPrecipitationsController {
             dateToOpt = Optional.of(Instant.parse(dateTo.get()));
         }
 
-        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
         List<DailyPrecipitation> result;
         if (stationId.isPresent() && dateToOpt.isPresent() && dateFromOpt.isPresent()) {
             Optional<Instant> finalDateToOpt = dateToOpt;

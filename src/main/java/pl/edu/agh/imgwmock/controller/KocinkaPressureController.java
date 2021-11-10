@@ -9,10 +9,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import pl.edu.agh.imgwmock.model.DailyPrecipitation;
-import pl.edu.agh.imgwmock.model.DataType;
-import pl.edu.agh.imgwmock.model.Info;
-import pl.edu.agh.imgwmock.model.Station;
+import pl.edu.agh.imgwmock.model.*;
 import pl.edu.agh.imgwmock.utils.CSVUtils;
 import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
@@ -53,11 +50,18 @@ public class KocinkaPressureController {
             @RequestParam(value = "date", required = false) Optional<String> dateString,
             @RequestParam(value = "dateFrom", required = false) Optional<String> dateFrom,
             @RequestParam(value = "dateTo", required = false) Optional<String> dateTo,
+            @RequestParam(value = "dateInstant", required = false) Optional<String> instant,
             HttpServletRequest request) {
         logger.info("Getting Kocinka");
+        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData();
 
         Optional<Instant> dateFromOpt = Optional.empty();
         Optional<Instant> dateToOpt = Optional.empty();
+
+        if (instant.isPresent()) {
+            Instant ins = Instant.parse(instant.get());
+            return new ResponseEntity<>(kocinka.stream().filter(data -> data.getDate().equals(ins)).collect(Collectors.toList()), HttpStatus.OK);
+        }
 
         if (dateString.isPresent()) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -71,7 +75,6 @@ public class KocinkaPressureController {
             dateToOpt = Optional.of(Instant.parse(dateTo.get()));
         }
 
-        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData();
 
         if (dateFromOpt.isPresent() && dateToOpt.isPresent()) {
             Optional<Instant> finalDateToOpt = dateToOpt;

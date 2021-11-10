@@ -34,6 +34,7 @@ public class KocinkaController {
     @GetMapping("/data")
     public ResponseEntity<List<PolylinePoint>> getKocinka(
             @RequestParam(value = "date", required = false) Optional<String> dateString,
+            @RequestParam(value = "dateInstant", required = false) Optional<String> instant,
             HttpServletRequest request) {
         logger.info("Getting Kocinka");
         List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv");
