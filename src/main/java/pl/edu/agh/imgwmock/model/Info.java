@@ -14,11 +14,25 @@ public class Info {
     private String name;
     private String description;
     private DataType dataType;
+    private String minColour;
+    private String maxColour;
     // To be defined later
 
-    public Info(String name, DataType dataType) {
+    public Info(String id, String name, String description, DataType dataType) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.dataType = dataType;
+        this.minColour = "#FFFFFF";
+        this.maxColour = "#0000FF";
+    }
+
+    public Info(String name, DataType datatype) {
+        this.id = name;
         this.name = name;
         this.description = "";
-        this.dataType = dataType;
+        this.dataType = datatype;
+        this.minColour = "#FFFFFF";
+        this.maxColour = "#0000FF";
     }
 }
