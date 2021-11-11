@@ -19,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 
 @RestController
@@ -34,7 +35,7 @@ public class IMGWDailyPrecipitationsController {
     @CrossOrigin
     @GetMapping("/info")
     public ResponseEntity<Info> getInfo(HttpServletRequest request) {
-        Info info = new Info("IMGW","IMGW","Rain data from IMGW stations", DataType.POINTS);
+        Info info = new Info("IMGW","IMGW","Rain data from IMGW stations", DataType.POINTS, "#FFF000", "#000FFF");
         return new ResponseEntity<>(info, HttpStatus.OK);
     }
 
@@ -93,5 +94,25 @@ public class IMGWDailyPrecipitationsController {
         } else {
             return new ResponseEntity<>(dailyPrecipitations, HttpStatus.OK);
         }
+    }
+
+    @CrossOrigin
+    @GetMapping("/min")
+    public ResponseEntity<java.lang.Double> getMinValue(HttpServletRequest request) {
+        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
+        OptionalDouble minValue = dailyPrecipitations.stream().mapToDouble(DailyPrecipitation::getValue).max();
+        if(minValue.isPresent())
+            return new ResponseEntity<>(minValue.getAsDouble(), HttpStatus.OK);
+        else return new ResponseEntity<>(0.0, HttpStatus.OK);
+    }
+
+    @CrossOrigin
+    @GetMapping("/max")
+    public ResponseEntity<java.lang.Double> getMaxValue(HttpServletRequest request) {
+        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
+        OptionalDouble maxValue = dailyPrecipitations.stream().mapToDouble(DailyPrecipitation::getValue).max();
+        if(maxValue.isPresent())
+            return new ResponseEntity<>(maxValue.getAsDouble(), HttpStatus.OK);
+        else return new ResponseEntity<>(0.0, HttpStatus.OK);
     }
 }
