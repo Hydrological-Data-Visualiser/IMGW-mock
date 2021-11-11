@@ -20,8 +20,12 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Controller
@@ -32,7 +36,7 @@ public class KocinkaTemperatureController {
     @CrossOrigin
     @GetMapping("/info")
     public ResponseEntity<Info> getInfo(HttpServletRequest request) {
-        Info info = new Info("riverTemperature","Kocinka Temperature","Kocinka Temperature data", DataType.LINE);
+        Info info = new Info("riverTemperature", "Kocinka Temperature", "Kocinka Temperature data", DataType.LINE);
         return new ResponseEntity<>(info, HttpStatus.OK);
     }
 
@@ -51,7 +55,6 @@ public class KocinkaTemperatureController {
         Optional<Instant> dateToOpt = Optional.empty();
 
 
-
         if (dateString.isPresent()) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             dateFromOpt = Optional.of(LocalDate.parse(dateString.get(), formatter).atTime(0, 0, 0).minusSeconds(1).toInstant(ZoneOffset.UTC));
@@ -64,8 +67,8 @@ public class KocinkaTemperatureController {
         }
 
         if (instant.isPresent()) {
-            dateFromOpt = Optional.of(Instant.parse(instant.get()).minusSeconds(400));
-            dateToOpt = Optional.of(Instant.parse(instant.get()).plusSeconds(400));
+            dateFromOpt = Optional.of(Instant.parse(instant.get()).minusSeconds(900));
+            dateToOpt = Optional.of(Instant.parse(instant.get()).plusSeconds(900));
         }
 
         Optional<Instant> finalDateFromOpt = dateFromOpt;
@@ -89,29 +92,46 @@ public class KocinkaTemperatureController {
                     List<DailyPrecipitation> values = finalKocinkaTemperatureData.stream()
                             .filter(temp -> temp.getStationId().equals(closestStation.getId()))
                             .collect(Collectors.toList());
-                    if (values.size() > 0) {
-                        result.add(new PolylinePoint(
-                                        point.getId(),
-                                        point.getLatitude(),
-                                        point.getLongitude(),
-                                        values.get(0).getValue(),
-                                        values.get(0).getDate()
-                                )
-                        );
-                    } else {
-                        result.add(new PolylinePoint(
-                                        point.getId(),
-                                        point.getLatitude(),
-                                        point.getLongitude(),
-                                        null,
-                                        point.getDate()
-                                )
-                        );
-                    }
+                    values.forEach(value ->
+                            result.add(new PolylinePoint(
+                                            point.getId(),
+                                            point.getLatitude(),
+                                            point.getLongitude(),
+                                            value.getValue(),
+                                            value.getDate()
+                                    )
+                            ));
+//                    if (values.size() > 0) {
+//                        result.add(new PolylinePoint(
+//                                        point.getId(),
+//                                        point.getLatitude(),
+//                                        point.getLongitude(),
+//                                        values.get(0).getValue(),
+//                                        values.get(0).getDate()
+//                                )
+//                        );
+//                    } else {
+//                        result.add(new PolylinePoint(
+//                                        point.getId(),
+//                                        point.getLatitude(),
+//                                        point.getLongitude(),
+//                                        null,
+//                                        point.getDate()
+//                                )
+//                        );
+//                    }
                 }
         );
+        if (dateString.isPresent()) {
+            return new ResponseEntity<>(result.stream().filter(distinctByKey(PolylinePoint::getDate)).collect(Collectors.toList()), HttpStatus.OK);
+        }
 
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    public static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
+        Map<Object, Boolean> map = new ConcurrentHashMap<>();
+        return t -> map.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
     private Station findClosestStation(PolylinePoint point) {
