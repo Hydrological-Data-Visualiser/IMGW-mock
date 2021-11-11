@@ -64,8 +64,8 @@ public class KocinkaTemperatureController {
         }
 
         if (instant.isPresent()) {
-            dateFromOpt = Optional.of(Instant.parse(instant.get()).minusSeconds(300));
-            dateToOpt = Optional.of(Instant.parse(instant.get()).plusSeconds(300));
+            dateFromOpt = Optional.of(Instant.parse(instant.get()).minusSeconds(400));
+            dateToOpt = Optional.of(Instant.parse(instant.get()).plusSeconds(400));
         }
 
         Optional<Instant> finalDateFromOpt = dateFromOpt;

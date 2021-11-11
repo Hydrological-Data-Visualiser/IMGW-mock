@@ -67,8 +67,8 @@ public class IMGWDailyPrecipitationsController {
         }
 
         if (instant.isPresent()) {
-            dateFromOpt = Optional.of(Instant.parse(instant.get()).minusSeconds(300));
-            dateToOpt = Optional.of(Instant.parse(instant.get()).plusSeconds(300));
+            dateFromOpt = Optional.of(Instant.parse(instant.get()).minusSeconds(400));
+            dateToOpt = Optional.of(Instant.parse(instant.get()).plusSeconds(400));
         }
 
         List<DailyPrecipitation> result;
