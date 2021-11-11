@@ -35,7 +35,7 @@ public class IMGWDailyPrecipitationsController {
     @CrossOrigin
     @GetMapping("/info")
     public ResponseEntity<Info> getInfo(HttpServletRequest request) {
-        Info info = new Info("IMGW","IMGW","Rain data from IMGW stations", DataType.POINTS, "#FFF000", "#000FFF");
+        Info info = new Info("IMGW","IMGW","Rain data from IMGW stations", DataType.POINTS, "[mm]", "#FFF000", "#000FFF");
         return new ResponseEntity<>(info, HttpStatus.OK);
     }
 
