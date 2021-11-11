@@ -100,7 +100,7 @@ public class IMGWDailyPrecipitationsController {
     @GetMapping("/min")
     public ResponseEntity<java.lang.Double> getMinValue(HttpServletRequest request) {
         List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
-        OptionalDouble minValue = dailyPrecipitations.stream().mapToDouble(DailyPrecipitation::getValue).max();
+        OptionalDouble minValue = dailyPrecipitations.stream().mapToDouble(DailyPrecipitation::getValue).min();
         if(minValue.isPresent())
             return new ResponseEntity<>(minValue.getAsDouble(), HttpStatus.OK);
         else return new ResponseEntity<>(0.0, HttpStatus.OK);
