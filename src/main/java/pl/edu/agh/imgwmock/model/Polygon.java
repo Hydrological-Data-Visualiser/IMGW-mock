@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.util.List;
 
 @Getter
@@ -13,4 +14,5 @@ public class Polygon {
     private Long id;
     private List<Double[]> points;
     private Double value;
+    private Instant date;
 }

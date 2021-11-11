@@ -1,6 +1,6 @@
 package pl.edu.agh.imgwmock.utils;
 
-import com.google.gson.Gson;
+import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
@@ -9,6 +9,8 @@ import pl.edu.agh.imgwmock.model.Station;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Type;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,7 +39,13 @@ public class CSVUtils {
     }
 
     public static List<Polygon> getPolygons(String pathToFile) {
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder().registerTypeAdapter(Instant.class, new JsonDeserializer<Instant>() {
+            @Override
+            public Instant deserialize(JsonElement json, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+                Instant instant = Instant.parse(json.getAsJsonPrimitive().getAsString());
+                return instant;
+            }
+        }).create();
         Polygon[] data = {};
         try (JsonReader reader = new JsonReader(new FileReader(pathToFile))) {
             data = gson.fromJson(reader, Polygon[].class);
