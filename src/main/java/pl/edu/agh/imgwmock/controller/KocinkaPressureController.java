@@ -72,8 +72,8 @@ public class KocinkaPressureController {
             dateToOpt = Optional.of(Instant.parse(dateTo.get()));
         }
         if (instant.isPresent()) {
-            dateFromOpt = Optional.of(Instant.parse(instant.get()).minusSeconds(400));
-            dateToOpt = Optional.of(Instant.parse(instant.get()).plusSeconds(400));
+            dateFromOpt = Optional.of(Instant.parse(instant.get()).minusSeconds(900));
+            dateToOpt = Optional.of(Instant.parse(instant.get()).plusSeconds(900));
         }
 
 
