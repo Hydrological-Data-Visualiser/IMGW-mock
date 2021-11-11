@@ -14,6 +14,7 @@ public class Info {
     private String name;
     private String description;
     private DataType dataType;
+    private String metricLabel;
     private String minColour;
     private String maxColour;
     // To be defined later
@@ -23,6 +24,7 @@ public class Info {
         this.name = name;
         this.description = description;
         this.dataType = dataType;
+        this.metricLabel = "";
         this.minColour = "#FFFFFF";
         this.maxColour = "#0000FF";
     }
@@ -32,6 +34,7 @@ public class Info {
         this.name = name;
         this.description = "";
         this.dataType = datatype;
+        this.metricLabel = "";
         this.minColour = "#FFFFFF";
         this.maxColour = "#0000FF";
     }
