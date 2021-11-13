@@ -9,6 +9,7 @@ import pl.edu.agh.imgwmock.model.DailyPrecipitation;
 import pl.edu.agh.imgwmock.model.DataType;
 import pl.edu.agh.imgwmock.model.Info;
 import pl.edu.agh.imgwmock.repository.DailyPrecipitationRepository;
+import pl.edu.agh.imgwmock.utils.DailyPrecipitationUtils;
 import pl.edu.agh.imgwmock.utils.ImgwUtils;
 import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
@@ -98,14 +99,12 @@ public class IMGWDailyPrecipitationsController {
     private Stream<DailyPrecipitation> precipitationBetween(String instantFrom, int length) {
         List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
         Instant dateFromInst = Instant.parse(instantFrom).minusSeconds(900);
-        return dailyPrecipitations.stream()
-                .sorted(Comparator.comparing(DailyPrecipitation::getDate)).filter(
-                        dailyPrecipitation -> {
-                            Instant date = dailyPrecipitation.getDate();
-                            return !date.isBefore(dateFromInst);
-                        })
-                .collect(Collectors.toList()).subList(0, length) // force sort
-                .stream();
+        Instant dateToInst = DailyPrecipitationUtils.getInstantAfterDistinct(dailyPrecipitations, dateFromInst, length);
+        return dailyPrecipitations.stream().filter(
+                dailyPrecipitation -> {
+                    Instant date = dailyPrecipitation.getDate();
+                    return !date.isBefore(dateFromInst) && !date.isAfter(dateToInst);
+                });
     }
 
     @CrossOrigin

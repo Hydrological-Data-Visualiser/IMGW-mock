@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import pl.edu.agh.imgwmock.model.*;
 import pl.edu.agh.imgwmock.utils.CSVUtils;
+import pl.edu.agh.imgwmock.utils.DailyPrecipitationUtils;
 import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -151,14 +152,12 @@ public class KocinkaTemperatureController {
     private Stream<DailyPrecipitation> temperatureBetween(String instantFrom, int length) {
         List<DailyPrecipitation> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
         Instant dateFromInst = Instant.parse(instantFrom).minusSeconds(900);
-        return kocinkaTemperatureData.stream()
-                .sorted(Comparator.comparing(DailyPrecipitation::getDate)).filter(
+        Instant dateToInst = DailyPrecipitationUtils.getInstantAfterDistinct(kocinkaTemperatureData, dateFromInst, length);
+        return kocinkaTemperatureData.stream().filter(
                 dailyPrecipitation -> {
                     Instant date = dailyPrecipitation.getDate();
-                    return !date.isBefore(dateFromInst);
-                })
-                .collect(Collectors.toList()).subList(0, length) // force sort
-                .stream();
+                    return !date.isBefore(dateFromInst) && !date.isAfter(dateToInst);
+                });
     }
 
     @CrossOrigin
