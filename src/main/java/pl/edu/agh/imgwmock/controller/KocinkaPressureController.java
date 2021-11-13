@@ -20,7 +20,9 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Controller
 @RequestMapping("/kocinkaPressure")
@@ -88,5 +90,44 @@ public class KocinkaPressureController {
         }
 
         return new ResponseEntity<>(kocinka, HttpStatus.OK);
+    }
+
+    private Stream<DailyPrecipitation> pressureBetween(String instantFrom, String instantTo) {
+        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData();
+        Instant dateFromInst = Instant.parse(instantFrom).minusSeconds(900);
+        Instant dateToInst = Instant.parse(instantTo).plusSeconds(900);
+        return kocinka.stream().filter(
+                dailyPrecipitation -> {
+                    Instant date = dailyPrecipitation.getDate();
+                    return !date.isBefore(dateFromInst) && !date.isAfter(dateToInst);
+                });
+    }
+
+    @CrossOrigin
+    @GetMapping("/min")
+    public ResponseEntity<java.lang.Double> getMinValue(
+            @RequestParam(value = "instantFrom") String instantFrom,
+            @RequestParam(value = "instantFrom") String instantTo,
+            HttpServletRequest request) {
+        OptionalDouble minValue =
+                pressureBetween(instantFrom, instantTo).mapToDouble(DailyPrecipitation::getValue).min();
+
+        if(minValue.isPresent())
+            return new ResponseEntity<>(minValue.getAsDouble(), HttpStatus.OK);
+        else return new ResponseEntity<>(0.0, HttpStatus.OK);
+    }
+
+    @CrossOrigin
+    @GetMapping("/max")
+    public ResponseEntity<java.lang.Double> getMaxValue(
+            @RequestParam(value = "instantFrom") String instantFrom,
+            @RequestParam(value = "instantFrom") String instantTo,
+            HttpServletRequest request) {
+        OptionalDouble maxValue =
+                pressureBetween(instantFrom, instantTo).mapToDouble(DailyPrecipitation::getValue).max();
+
+        if(maxValue.isPresent())
+            return new ResponseEntity<>(maxValue.getAsDouble(), HttpStatus.OK);
+        else return new ResponseEntity<>(0.0, HttpStatus.OK);
     }
 }
