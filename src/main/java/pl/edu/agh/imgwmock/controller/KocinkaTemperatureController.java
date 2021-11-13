@@ -18,15 +18,13 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Controller
 @RequestMapping("/kocinkaTemperature")
@@ -148,5 +146,44 @@ public class KocinkaTemperatureController {
         });
 
         return closestStation.get();
+    }
+
+    private Stream<DailyPrecipitation> temperatureBetween(String instantFrom, String instantTo) {
+        List<DailyPrecipitation> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
+        Instant dateFromInst = Instant.parse(instantFrom).minusSeconds(900);
+        Instant dateToInst = Instant.parse(instantTo).plusSeconds(900);
+        return kocinkaTemperatureData.stream().filter(
+                dailyPrecipitation -> {
+                    Instant date = dailyPrecipitation.getDate();
+                    return !date.isBefore(dateFromInst) && !date.isAfter(dateToInst);
+                });
+    }
+
+    @CrossOrigin
+    @GetMapping("/min")
+    public ResponseEntity<java.lang.Double> getMinValue(
+            @RequestParam(value = "instantFrom") String instantFrom,
+            @RequestParam(value = "instantFrom") String instantTo,
+            HttpServletRequest request) {
+        OptionalDouble minValue =
+                temperatureBetween(instantFrom, instantTo).mapToDouble(DailyPrecipitation::getValue).min();
+
+        if(minValue.isPresent())
+            return new ResponseEntity<>(minValue.getAsDouble(), HttpStatus.OK);
+        else return new ResponseEntity<>(0.0, HttpStatus.OK);
+    }
+
+    @CrossOrigin
+    @GetMapping("/max")
+    public ResponseEntity<java.lang.Double> getMaxValue(
+            @RequestParam(value = "instantFrom") String instantFrom,
+            @RequestParam(value = "instantFrom") String instantTo,
+            HttpServletRequest request) {
+        OptionalDouble maxValue =
+                temperatureBetween(instantFrom, instantTo).mapToDouble(DailyPrecipitation::getValue).max();
+
+        if(maxValue.isPresent())
+            return new ResponseEntity<>(maxValue.getAsDouble(), HttpStatus.OK);
+        else return new ResponseEntity<>(0.0, HttpStatus.OK);
     }
 }
