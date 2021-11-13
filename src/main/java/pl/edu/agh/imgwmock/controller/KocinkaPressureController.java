@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import pl.edu.agh.imgwmock.model.*;
 import pl.edu.agh.imgwmock.utils.CSVUtils;
+import pl.edu.agh.imgwmock.utils.DailyPrecipitationUtils;
 import pl.edu.agh.imgwmock.utils.ImgwUtils;
 import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
@@ -97,14 +98,12 @@ public class KocinkaPressureController {
     private Stream<DailyPrecipitation> pressureBetween(String instantFrom, int length) {
         List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData();
         Instant dateFromInst = Instant.parse(instantFrom).minusSeconds(900);
-        return kocinka.stream()
-                .sorted(Comparator.comparing(DailyPrecipitation::getDate)).filter(
-                        dailyPrecipitation -> {
-                            Instant date = dailyPrecipitation.getDate();
-                            return !date.isBefore(dateFromInst);
-                        })
-                .collect(Collectors.toList()).subList(0, length) // force sort
-                .stream();
+        Instant dateToInst = DailyPrecipitationUtils.getInstantAfterDistinct(kocinka, dateFromInst, length);
+        return kocinka.stream().filter(
+                dailyPrecipitation -> {
+                    Instant date = dailyPrecipitation.getDate();
+                    return !date.isBefore(dateFromInst) && !date.isAfter(dateToInst);
+                });
     }
 
     @CrossOrigin
