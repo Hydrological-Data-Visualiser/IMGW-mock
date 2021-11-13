@@ -112,7 +112,7 @@ public class IMGWDailyPrecipitationsController {
     @GetMapping("/min")
     public ResponseEntity<java.lang.Double> getMinValue(
             @RequestParam(value = "instantFrom") String instantFrom,
-            @RequestParam(value = "instantFrom") String instantTo,
+            @RequestParam(value = "instantTo") String instantTo,
             HttpServletRequest request) {
         OptionalDouble minValue =
                 precipitationsBetween(instantFrom, instantTo).mapToDouble(DailyPrecipitation::getValue).min();
@@ -126,7 +126,7 @@ public class IMGWDailyPrecipitationsController {
     @GetMapping("/max")
     public ResponseEntity<java.lang.Double> getMaxValue(
             @RequestParam(value = "instantFrom") String instantFrom,
-            @RequestParam(value = "instantFrom") String instantTo,
+            @RequestParam(value = "instantTo") String instantTo,
             HttpServletRequest request) {
         OptionalDouble maxValue =
                 precipitationsBetween(instantFrom, instantTo).mapToDouble(DailyPrecipitation::getValue).max();

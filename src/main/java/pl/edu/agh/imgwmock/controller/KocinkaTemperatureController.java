@@ -163,7 +163,7 @@ public class KocinkaTemperatureController {
     @GetMapping("/min")
     public ResponseEntity<java.lang.Double> getMinValue(
             @RequestParam(value = "instantFrom") String instantFrom,
-            @RequestParam(value = "instantFrom") String instantTo,
+            @RequestParam(value = "instantTo") String instantTo,
             HttpServletRequest request) {
         OptionalDouble minValue =
                 temperatureBetween(instantFrom, instantTo).mapToDouble(DailyPrecipitation::getValue).min();
@@ -177,7 +177,7 @@ public class KocinkaTemperatureController {
     @GetMapping("/max")
     public ResponseEntity<java.lang.Double> getMaxValue(
             @RequestParam(value = "instantFrom") String instantFrom,
-            @RequestParam(value = "instantFrom") String instantTo,
+            @RequestParam(value = "instantTo") String instantTo,
             HttpServletRequest request) {
         OptionalDouble maxValue =
                 temperatureBetween(instantFrom, instantTo).mapToDouble(DailyPrecipitation::getValue).max();

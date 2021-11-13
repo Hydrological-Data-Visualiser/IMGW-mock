@@ -107,7 +107,7 @@ public class KocinkaPressureController {
     @GetMapping("/min")
     public ResponseEntity<java.lang.Double> getMinValue(
             @RequestParam(value = "instantFrom") String instantFrom,
-            @RequestParam(value = "instantFrom") String instantTo,
+            @RequestParam(value = "instantTo") String instantTo,
             HttpServletRequest request) {
         OptionalDouble minValue =
                 pressureBetween(instantFrom, instantTo).mapToDouble(DailyPrecipitation::getValue).min();
@@ -121,7 +121,7 @@ public class KocinkaPressureController {
     @GetMapping("/max")
     public ResponseEntity<java.lang.Double> getMaxValue(
             @RequestParam(value = "instantFrom") String instantFrom,
-            @RequestParam(value = "instantFrom") String instantTo,
+            @RequestParam(value = "instantTo") String instantTo,
             HttpServletRequest request) {
         OptionalDouble maxValue =
                 pressureBetween(instantFrom, instantTo).mapToDouble(DailyPrecipitation::getValue).max();
