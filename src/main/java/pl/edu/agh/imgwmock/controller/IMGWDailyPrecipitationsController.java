@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/imgw")
@@ -96,11 +97,26 @@ public class IMGWDailyPrecipitationsController {
         }
     }
 
+    private Stream<DailyPrecipitation> precipitationsBetween(String instantFrom, String instantTo) {
+        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
+        Instant dateFromInst = Instant.parse(instantFrom).minusSeconds(900);
+        Instant dateToInst = Instant.parse(instantTo).plusSeconds(900);
+        return dailyPrecipitations.stream().filter(
+                dailyPrecipitation -> {
+                    Instant date = dailyPrecipitation.getDate();
+                    return !date.isBefore(dateFromInst) && !date.isAfter(dateToInst);
+                });
+    }
+
     @CrossOrigin
     @GetMapping("/min")
-    public ResponseEntity<java.lang.Double> getMinValue(HttpServletRequest request) {
-        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
-        OptionalDouble minValue = dailyPrecipitations.stream().mapToDouble(DailyPrecipitation::getValue).min();
+    public ResponseEntity<java.lang.Double> getMinValue(
+            @RequestParam(value = "instantFrom") String instantFrom,
+            @RequestParam(value = "instantFrom") String instantTo,
+            HttpServletRequest request) {
+        OptionalDouble minValue =
+                precipitationsBetween(instantFrom, instantTo).mapToDouble(DailyPrecipitation::getValue).min();
+
         if(minValue.isPresent())
             return new ResponseEntity<>(minValue.getAsDouble(), HttpStatus.OK);
         else return new ResponseEntity<>(0.0, HttpStatus.OK);
@@ -108,9 +124,13 @@ public class IMGWDailyPrecipitationsController {
 
     @CrossOrigin
     @GetMapping("/max")
-    public ResponseEntity<java.lang.Double> getMaxValue(HttpServletRequest request) {
-        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
-        OptionalDouble maxValue = dailyPrecipitations.stream().mapToDouble(DailyPrecipitation::getValue).max();
+    public ResponseEntity<java.lang.Double> getMaxValue(
+            @RequestParam(value = "instantFrom") String instantFrom,
+            @RequestParam(value = "instantFrom") String instantTo,
+            HttpServletRequest request) {
+        OptionalDouble maxValue =
+                precipitationsBetween(instantFrom, instantTo).mapToDouble(DailyPrecipitation::getValue).max();
+
         if(maxValue.isPresent())
             return new ResponseEntity<>(maxValue.getAsDouble(), HttpStatus.OK);
         else return new ResponseEntity<>(0.0, HttpStatus.OK);
