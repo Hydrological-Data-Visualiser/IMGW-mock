@@ -10,16 +10,14 @@ import pl.edu.agh.imgwmock.model.DataType;
 import pl.edu.agh.imgwmock.model.Info;
 import pl.edu.agh.imgwmock.repository.DailyPrecipitationRepository;
 import pl.edu.agh.imgwmock.utils.ImgwUtils;
+import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.OptionalDouble;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -97,25 +95,27 @@ public class IMGWDailyPrecipitationsController {
         }
     }
 
-    private Stream<DailyPrecipitation> precipitationsBetween(String instantFrom, String instantTo) {
+    private Stream<DailyPrecipitation> precipitationBetween(String instantFrom, int length) {
         List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
         Instant dateFromInst = Instant.parse(instantFrom).minusSeconds(900);
-        Instant dateToInst = Instant.parse(instantTo).plusSeconds(900);
-        return dailyPrecipitations.stream().filter(
-                dailyPrecipitation -> {
-                    Instant date = dailyPrecipitation.getDate();
-                    return !date.isBefore(dateFromInst) && !date.isAfter(dateToInst);
-                });
+        return dailyPrecipitations.stream()
+                .sorted(Comparator.comparing(DailyPrecipitation::getDate)).filter(
+                        dailyPrecipitation -> {
+                            Instant date = dailyPrecipitation.getDate();
+                            return !date.isBefore(dateFromInst);
+                        })
+                .collect(Collectors.toList()).subList(0, length) // force sort
+                .stream();
     }
 
     @CrossOrigin
     @GetMapping("/min")
     public ResponseEntity<java.lang.Double> getMinValue(
             @RequestParam(value = "instantFrom") String instantFrom,
-            @RequestParam(value = "instantTo") String instantTo,
+            @RequestParam(value = "length") int length,
             HttpServletRequest request) {
         OptionalDouble minValue =
-                precipitationsBetween(instantFrom, instantTo).mapToDouble(DailyPrecipitation::getValue).min();
+                precipitationBetween(instantFrom, length).mapToDouble(DailyPrecipitation::getValue).min();
 
         if(minValue.isPresent())
             return new ResponseEntity<>(minValue.getAsDouble(), HttpStatus.OK);
@@ -126,10 +126,10 @@ public class IMGWDailyPrecipitationsController {
     @GetMapping("/max")
     public ResponseEntity<java.lang.Double> getMaxValue(
             @RequestParam(value = "instantFrom") String instantFrom,
-            @RequestParam(value = "instantTo") String instantTo,
+            @RequestParam(value = "length") int length,
             HttpServletRequest request) {
         OptionalDouble maxValue =
-                precipitationsBetween(instantFrom, instantTo).mapToDouble(DailyPrecipitation::getValue).max();
+                precipitationBetween(instantFrom, length).mapToDouble(DailyPrecipitation::getValue).max();
 
         if(maxValue.isPresent())
             return new ResponseEntity<>(maxValue.getAsDouble(), HttpStatus.OK);

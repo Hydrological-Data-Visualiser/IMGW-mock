@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import pl.edu.agh.imgwmock.model.*;
 import pl.edu.agh.imgwmock.utils.CSVUtils;
+import pl.edu.agh.imgwmock.utils.ImgwUtils;
 import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -18,6 +19,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -92,25 +94,27 @@ public class KocinkaPressureController {
         return new ResponseEntity<>(kocinka, HttpStatus.OK);
     }
 
-    private Stream<DailyPrecipitation> pressureBetween(String instantFrom, String instantTo) {
+    private Stream<DailyPrecipitation> pressureBetween(String instantFrom, int length) {
         List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData();
         Instant dateFromInst = Instant.parse(instantFrom).minusSeconds(900);
-        Instant dateToInst = Instant.parse(instantTo).plusSeconds(900);
-        return kocinka.stream().filter(
-                dailyPrecipitation -> {
-                    Instant date = dailyPrecipitation.getDate();
-                    return !date.isBefore(dateFromInst) && !date.isAfter(dateToInst);
-                });
+        return kocinka.stream()
+                .sorted(Comparator.comparing(DailyPrecipitation::getDate)).filter(
+                        dailyPrecipitation -> {
+                            Instant date = dailyPrecipitation.getDate();
+                            return !date.isBefore(dateFromInst);
+                        })
+                .collect(Collectors.toList()).subList(0, length) // force sort
+                .stream();
     }
 
     @CrossOrigin
     @GetMapping("/min")
     public ResponseEntity<java.lang.Double> getMinValue(
             @RequestParam(value = "instantFrom") String instantFrom,
-            @RequestParam(value = "instantTo") String instantTo,
+            @RequestParam(value = "length") int length,
             HttpServletRequest request) {
         OptionalDouble minValue =
-                pressureBetween(instantFrom, instantTo).mapToDouble(DailyPrecipitation::getValue).min();
+                pressureBetween(instantFrom, length).mapToDouble(DailyPrecipitation::getValue).min();
 
         if(minValue.isPresent())
             return new ResponseEntity<>(minValue.getAsDouble(), HttpStatus.OK);
@@ -121,10 +125,10 @@ public class KocinkaPressureController {
     @GetMapping("/max")
     public ResponseEntity<java.lang.Double> getMaxValue(
             @RequestParam(value = "instantFrom") String instantFrom,
-            @RequestParam(value = "instantTo") String instantTo,
+            @RequestParam(value = "length") int length,
             HttpServletRequest request) {
         OptionalDouble maxValue =
-                pressureBetween(instantFrom, instantTo).mapToDouble(DailyPrecipitation::getValue).max();
+                pressureBetween(instantFrom, length).mapToDouble(DailyPrecipitation::getValue).max();
 
         if(maxValue.isPresent())
             return new ResponseEntity<>(maxValue.getAsDouble(), HttpStatus.OK);
