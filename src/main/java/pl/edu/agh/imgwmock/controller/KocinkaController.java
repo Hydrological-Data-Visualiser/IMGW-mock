@@ -15,6 +15,9 @@ import pl.edu.agh.imgwmock.model.PolylinePoint;
 import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,7 +29,7 @@ public class KocinkaController {
     @CrossOrigin
     @GetMapping("/info")
     public ResponseEntity<Info> getInfo(HttpServletRequest request) {
-        Info info = new Info("river","Kocinka", "Random Kocinka data", DataType.LINE);
+        Info info = new Info("river", "Kocinka", "Random Kocinka data", DataType.LINE, "[mm]", "#FFF000", "#000FFF", getAvailableDates());
         return new ResponseEntity<>(info, HttpStatus.OK);
     }
 
@@ -39,5 +42,13 @@ public class KocinkaController {
         logger.info("Getting Kocinka");
         List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv");
         return new ResponseEntity<>(kocinka, HttpStatus.OK);
+    }
+
+    private List<LocalDate> getAvailableDates() {
+        List<LocalDate> list = new ArrayList<>();
+        for (int i = 1; i < 30; i++) {
+            list.add(LocalDate.of(2021, Month.AUGUST, i));
+        }
+        return list;
     }
 }

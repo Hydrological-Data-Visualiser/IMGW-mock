@@ -15,6 +15,9 @@ import pl.edu.agh.imgwmock.model.Polygon;
 import pl.edu.agh.imgwmock.utils.CSVUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,7 +29,7 @@ public class PolygonController {
     @CrossOrigin
     @GetMapping("/info")
     public ResponseEntity<Info> getInfo(HttpServletRequest request) {
-        Info info = new Info("Polygons", DataType.POLYGON);
+        Info info = new Info("Polygons", "Polygons", "Polygons random data", DataType.POLYGON, "[mm]", "#FFF000", "#000FFF", getAvailableDates());
         return new ResponseEntity<>(info, HttpStatus.OK);
     }
 
@@ -41,5 +44,13 @@ public class PolygonController {
         logger.info("Getting example polygons");
         List<Polygon> polygons = CSVUtils.getPolygons("src/main/resources/polygons.json");
         return new ResponseEntity<>(polygons, HttpStatus.OK);
+    }
+
+    private List<LocalDate> getAvailableDates() {
+        List<LocalDate> list = new ArrayList<>();
+        for (int i = 5; i < 25; i++) {
+            list.add(LocalDate.of(2021, Month.SEPTEMBER, i));
+        }
+        return list;
     }
 }

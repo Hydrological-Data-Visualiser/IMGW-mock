@@ -17,6 +17,7 @@ import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -35,7 +36,7 @@ public class KocinkaTemperatureController {
     @CrossOrigin
     @GetMapping("/info")
     public ResponseEntity<Info> getInfo(HttpServletRequest request) {
-        Info info = new Info("riverTemperature", "Kocinka Temperature", "Kocinka Temperature data", DataType.LINE);
+        Info info = new Info("riverTemperature", "Kocinka Temperature", "Kocinka Temperature data", DataType.LINE, "[°C]", "#FFF000", "#000FFF", getAvailableDates());
         return new ResponseEntity<>(info, HttpStatus.OK);
     }
 
@@ -186,5 +187,10 @@ public class KocinkaTemperatureController {
         if(maxValue.isPresent())
             return new ResponseEntity<>(maxValue.getAsDouble(), HttpStatus.OK);
         else return new ResponseEntity<>(0.0, HttpStatus.OK);
+    }
+
+    private List<LocalDate> getAvailableDates() {
+        List<DailyPrecipitation> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
+        return kocinkaTemperatureData.stream().map(a -> LocalDate.ofInstant(a.getDate(), ZoneId.systemDefault())).distinct().collect(Collectors.toList());
     }
 }

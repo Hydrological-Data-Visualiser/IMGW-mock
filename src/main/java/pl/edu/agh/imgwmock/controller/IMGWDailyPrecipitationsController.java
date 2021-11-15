@@ -11,14 +11,17 @@ import pl.edu.agh.imgwmock.model.Info;
 import pl.edu.agh.imgwmock.repository.DailyPrecipitationRepository;
 import pl.edu.agh.imgwmock.utils.DailyPrecipitationUtils;
 import pl.edu.agh.imgwmock.utils.ImgwUtils;
-import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -35,7 +38,7 @@ public class IMGWDailyPrecipitationsController {
     @CrossOrigin
     @GetMapping("/info")
     public ResponseEntity<Info> getInfo(HttpServletRequest request) {
-        Info info = new Info("IMGW","IMGW","Rain data from IMGW stations", DataType.POINTS, "[mm]", "#FFF000", "#000FFF");
+        Info info = new Info("IMGW", "IMGW", "Rain data from IMGW stations", DataType.POINTS, "[mm]", "#FFF000", "#000FFF", getAvailableDates());
         return new ResponseEntity<>(info, HttpStatus.OK);
     }
 
@@ -116,7 +119,7 @@ public class IMGWDailyPrecipitationsController {
         OptionalDouble minValue =
                 precipitationBetween(instantFrom, length).mapToDouble(DailyPrecipitation::getValue).min();
 
-        if(minValue.isPresent())
+        if (minValue.isPresent())
             return new ResponseEntity<>(minValue.getAsDouble(), HttpStatus.OK);
         else return new ResponseEntity<>(0.0, HttpStatus.OK);
     }
@@ -130,8 +133,13 @@ public class IMGWDailyPrecipitationsController {
         OptionalDouble maxValue =
                 precipitationBetween(instantFrom, length).mapToDouble(DailyPrecipitation::getValue).max();
 
-        if(maxValue.isPresent())
+        if (maxValue.isPresent())
             return new ResponseEntity<>(maxValue.getAsDouble(), HttpStatus.OK);
         else return new ResponseEntity<>(0.0, HttpStatus.OK);
+    }
+
+    private List<LocalDate> getAvailableDates() {
+        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
+        return dailyPrecipitations.stream().map(a -> LocalDate.ofInstant(a.getDate(), ZoneId.systemDefault())).distinct().collect(Collectors.toList());
     }
 }

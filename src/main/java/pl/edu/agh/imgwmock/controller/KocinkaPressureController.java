@@ -9,18 +9,20 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import pl.edu.agh.imgwmock.model.*;
+import pl.edu.agh.imgwmock.model.DailyPrecipitation;
+import pl.edu.agh.imgwmock.model.DataType;
+import pl.edu.agh.imgwmock.model.Info;
+import pl.edu.agh.imgwmock.model.Station;
 import pl.edu.agh.imgwmock.utils.CSVUtils;
 import pl.edu.agh.imgwmock.utils.DailyPrecipitationUtils;
-import pl.edu.agh.imgwmock.utils.ImgwUtils;
 import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -35,7 +37,7 @@ public class KocinkaPressureController {
     @CrossOrigin
     @GetMapping("/info")
     public ResponseEntity<Info> getInfo(HttpServletRequest request) {
-        Info info = new Info("riverPressure", "Kocinka Points", "Kocinka Pressure data", DataType.POINTS);
+        Info info = new Info("riverPressure", "Kocinka Points", "Kocinka Pressure data", DataType.POINTS, "[mm]", "#FFF000", "#000FFF", getAvailableDates());
         return new ResponseEntity<>(info, HttpStatus.OK);
     }
 
@@ -62,7 +64,6 @@ public class KocinkaPressureController {
 
         Optional<Instant> dateFromOpt = Optional.empty();
         Optional<Instant> dateToOpt = Optional.empty();
-
 
 
         if (dateString.isPresent()) {
@@ -115,7 +116,7 @@ public class KocinkaPressureController {
         OptionalDouble minValue =
                 pressureBetween(instantFrom, length).mapToDouble(DailyPrecipitation::getValue).min();
 
-        if(minValue.isPresent())
+        if (minValue.isPresent())
             return new ResponseEntity<>(minValue.getAsDouble(), HttpStatus.OK);
         else return new ResponseEntity<>(0.0, HttpStatus.OK);
     }
@@ -129,8 +130,13 @@ public class KocinkaPressureController {
         OptionalDouble maxValue =
                 pressureBetween(instantFrom, length).mapToDouble(DailyPrecipitation::getValue).max();
 
-        if(maxValue.isPresent())
+        if (maxValue.isPresent())
             return new ResponseEntity<>(maxValue.getAsDouble(), HttpStatus.OK);
         else return new ResponseEntity<>(0.0, HttpStatus.OK);
+    }
+
+    private List<LocalDate> getAvailableDates() {
+        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData();
+        return kocinka.stream().map(a -> LocalDate.ofInstant(a.getDate(), ZoneId.systemDefault())).distinct().collect(Collectors.toList());
     }
 }
