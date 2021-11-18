@@ -14,6 +14,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class CSVUtils {
 
@@ -38,7 +40,7 @@ public class CSVUtils {
         }
     }
 
-    public static List<Polygon> getPolygons(String pathToFile) {
+    public static List<Polygon> getPolygons(String pathToFile, Optional<String> instant) {
         Gson gson = new GsonBuilder().registerTypeAdapter(Instant.class, new JsonDeserializer<Instant>() {
             @Override
             public Instant deserialize(JsonElement json, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
@@ -49,7 +51,10 @@ public class CSVUtils {
         Polygon[] data = {};
         try (JsonReader reader = new JsonReader(new FileReader(pathToFile))) {
             data = gson.fromJson(reader, Polygon[].class);
-            return Arrays.asList(data);
+            return Arrays.asList(data)
+                    .stream()
+                    .map(polygon -> new Polygon(polygon.getId(), polygon.getPoints(), polygon.getValue(), Instant.parse(instant.orElse("2021-10-10T10:10:10Z"))))
+                    .collect(Collectors.toList());
         } catch (IOException e) {
             e.printStackTrace();
         }

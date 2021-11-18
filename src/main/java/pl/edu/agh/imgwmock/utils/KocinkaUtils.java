@@ -11,11 +11,12 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class KocinkaUtils {
-    public static List<PolylinePoint> getKocinka(String pathToFile) {
+    public static List<PolylinePoint> getKocinka(String pathToFile, Optional<String> instant) {
         List<PolylinePoint> kocinka = new ArrayList<>();
         try (CSVReader reader = new CSVReader(new FileReader(pathToFile))) {
             List<String[]> csvRecords = reader.readAll();
@@ -27,7 +28,7 @@ public class KocinkaUtils {
                         Double.parseDouble(record[1]),
                         Double.parseDouble(record[0]),
                         random.nextDouble() * 5,
-                        Instant.parse("2011-12-03T10:15:30Z")
+                        Instant.parse(instant.orElse("2011-12-03T10:15:30Z"))
                 ));
             });
         } catch (IOException | CsvException e) {

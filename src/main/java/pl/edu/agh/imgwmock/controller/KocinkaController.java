@@ -40,7 +40,7 @@ public class KocinkaController {
             @RequestParam(value = "dateInstant", required = false) Optional<String> instant,
             HttpServletRequest request) {
         logger.info("Getting Kocinka");
-        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv");
+        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", instant);
         return new ResponseEntity<>(kocinka, HttpStatus.OK);
     }
 

@@ -83,7 +83,7 @@ public class KocinkaTemperatureController {
                         temperature.getDate().isAfter(finalDateFromOpt.get()) && temperature.getDate().isBefore(finalDateToOpt.get()))
                 .collect(Collectors.toList());
 
-        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv");
+        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.empty());
         List<DailyPrecipitation> finalKocinkaTemperatureData = kocinkaTemperatureData;
         List<PolylinePoint> result = new ArrayList<>();
 

@@ -42,7 +42,7 @@ public class PolygonController {
             @RequestParam(value = "dateInstant", required = false) Optional<String> instant,
             HttpServletRequest request) {
         logger.info("Getting example polygons");
-        List<Polygon> polygons = CSVUtils.getPolygons("src/main/resources/polygons.json");
+        List<Polygon> polygons = CSVUtils.getPolygons("src/main/resources/polygons.json", instant);
         return new ResponseEntity<>(polygons, HttpStatus.OK);
     }
 
