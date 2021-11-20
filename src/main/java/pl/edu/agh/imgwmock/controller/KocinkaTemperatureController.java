@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 
 @Controller
 @RequestMapping("/kocinkaTemperature")
-public class KocinkaTemperatureController {
+public class KocinkaTemperatureController implements DataController<PolylinePoint> {
     Logger logger = LoggerFactory.getLogger(KocinkaTemperatureController.class);
 
     @CrossOrigin
@@ -42,7 +42,8 @@ public class KocinkaTemperatureController {
 
     @CrossOrigin
     @GetMapping("/data")
-    public ResponseEntity<List<PolylinePoint>> getKocinka(
+    public ResponseEntity<List<PolylinePoint>> getData(
+            @RequestParam(value = "stationId", required = false) Optional<Long> stationId, // ignored
             @RequestParam(value = "date", required = false) Optional<String> dateString,
             @RequestParam(value = "dateFrom", required = false) Optional<String> dateFrom,
             @RequestParam(value = "dateTo", required = false) Optional<String> dateTo,

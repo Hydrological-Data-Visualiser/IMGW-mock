@@ -27,12 +27,10 @@ import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/imgw")
-public class IMGWDailyPrecipitationsController {
-    private final DailyPrecipitationRepository dailyPrecipitationRepository;
+public class IMGWDailyPrecipitationsController implements DataController<DailyPrecipitation> {
     Logger logger = LoggerFactory.getLogger(IMGWDailyPrecipitationsController.class);
 
-    public IMGWDailyPrecipitationsController(DailyPrecipitationRepository dailyPrecipitationRepository) {
-        this.dailyPrecipitationRepository = dailyPrecipitationRepository;
+    public IMGWDailyPrecipitationsController() {
     }
 
     @CrossOrigin
@@ -44,7 +42,7 @@ public class IMGWDailyPrecipitationsController {
 
     @CrossOrigin
     @GetMapping("/data")
-    public ResponseEntity<List<DailyPrecipitation>> getDailyPrecipitationsById(
+    public ResponseEntity<List<DailyPrecipitation>> getData(
             @RequestParam(value = "stationId", required = false) Optional<Long> stationId,
             @RequestParam(value = "date", required = false) Optional<String> dateString,
             @RequestParam(value = "dateFrom", required = false) Optional<String> dateFrom,

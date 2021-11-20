@@ -9,21 +9,23 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import pl.edu.agh.imgwmock.model.DataType;
-import pl.edu.agh.imgwmock.model.Info;
-import pl.edu.agh.imgwmock.model.PolylinePoint;
+import pl.edu.agh.imgwmock.model.*;
+import pl.edu.agh.imgwmock.utils.CSVUtils;
 import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/kocinka")
-public class KocinkaController {
+public class KocinkaController implements DataController<PolylinePoint> {
     Logger logger = LoggerFactory.getLogger(KocinkaController.class);
 
     @CrossOrigin
@@ -33,10 +35,21 @@ public class KocinkaController {
         return new ResponseEntity<>(info, HttpStatus.OK);
     }
 
+    private List<LocalDate> getAvailableDates() {
+        List<LocalDate> list = new ArrayList<>();
+        for (int i = 1; i < 30; i++) {
+            list.add(LocalDate.of(2021, Month.AUGUST, i));
+        }
+        return list;
+    }
+
     @CrossOrigin
     @GetMapping("/data")
-    public ResponseEntity<List<PolylinePoint>> getKocinka(
+    public ResponseEntity<List<PolylinePoint>> getData(
+            @RequestParam(value = "stationId", required = false) Optional<Long> stationId, // ignored
             @RequestParam(value = "date", required = false) Optional<String> dateString,
+            @RequestParam(value = "dateFrom", required = false) Optional<String> dateFrom,
+            @RequestParam(value = "dateTo", required = false) Optional<String> dateTo,
             @RequestParam(value = "dateInstant", required = false) Optional<String> instant,
             HttpServletRequest request) {
         logger.info("Getting Kocinka");
@@ -44,11 +57,19 @@ public class KocinkaController {
         return new ResponseEntity<>(kocinka, HttpStatus.OK);
     }
 
-    private List<LocalDate> getAvailableDates() {
-        List<LocalDate> list = new ArrayList<>();
-        for (int i = 1; i < 30; i++) {
-            list.add(LocalDate.of(2021, Month.AUGUST, i));
-        }
-        return list;
+    @CrossOrigin
+    @GetMapping("/min")
+    @Override
+    public ResponseEntity<Double> getMinValue(String instantFrom, int length, HttpServletRequest request) {
+        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.of(instantFrom));
+        return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylinePoint::getValue)).collect(Collectors.toList()).get(0).getValue(), HttpStatus.OK);
+    }
+
+    @CrossOrigin
+    @GetMapping("/max")
+    @Override
+    public ResponseEntity<Double> getMaxValue(String instantFrom, int length, HttpServletRequest request) {
+        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.of(instantFrom));
+        return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylinePoint::getValue)).collect(Collectors.toList()).get(kocinka.size()-1).getValue(), HttpStatus.OK);
     }
 }
