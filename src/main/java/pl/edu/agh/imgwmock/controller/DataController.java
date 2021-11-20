@@ -7,6 +7,7 @@ import pl.edu.agh.imgwmock.model.DailyPrecipitation;
 import pl.edu.agh.imgwmock.model.Info;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +31,11 @@ public interface DataController<T> {
     ResponseEntity<Double> getMaxValue(
             @RequestParam(value = "instantFrom") String instantFrom,
             @RequestParam(value = "length") int length,
+            HttpServletRequest request);
+    
+    ResponseEntity<Instant> getTimePointAfter(
+            @RequestParam(value = "instantFrom") String instantFrom,
+            @RequestParam(value = "step") int step,
             HttpServletRequest request);
 
 }

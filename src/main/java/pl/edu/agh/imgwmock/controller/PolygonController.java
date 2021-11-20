@@ -9,10 +9,12 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import pl.edu.agh.imgwmock.model.DailyPrecipitation;
 import pl.edu.agh.imgwmock.model.DataType;
 import pl.edu.agh.imgwmock.model.Info;
 import pl.edu.agh.imgwmock.model.Polygon;
 import pl.edu.agh.imgwmock.utils.CSVUtils;
+import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
@@ -72,5 +74,23 @@ public class PolygonController implements DataController<Polygon> {
     public ResponseEntity<Double> getMaxValue(String instantFrom, int length, HttpServletRequest request) {
         List<Polygon> polygons = CSVUtils.getPolygons("src/main/resources/polygons.json", Optional.of(instantFrom));
         return new ResponseEntity<>(polygons.stream().sorted(Comparator.comparing(Polygon::getValue)).collect(Collectors.toList()).get(polygons.size()-1).getValue(), HttpStatus.OK);
+    }
+
+    @CrossOrigin
+    @GetMapping("/timePointsAfter")
+    @Override
+    public ResponseEntity<Instant> getTimePointAfter(
+            @RequestParam(value = "instantFrom") String instantFrom,
+            @RequestParam(value = "step") int step,
+            HttpServletRequest request){
+        Instant dateFromInst = Instant.parse(instantFrom);
+        List<Polygon> polygons = CSVUtils.getPolygons("src/main/resources/polygons.json", Optional.of(instantFrom));
+        Instant[] timePointsAfter = (Instant[]) polygons.stream().map(Polygon::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().toArray();
+
+        Instant instant;
+        if(timePointsAfter.length <= step) instant = timePointsAfter[timePointsAfter.length-1];
+        else instant = timePointsAfter[step];
+
+        return new ResponseEntity<>(instant, HttpStatus.OK);
     }
 }
