@@ -23,11 +23,9 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/imgw")
 public class IMGWStationsController {
-    private final StationRepository stationRepository;
     Logger logger = LoggerFactory.getLogger(IMGWStationsController.class);
 
-    public IMGWStationsController(StationRepository stationRepository) {
-        this.stationRepository = stationRepository;
+    public IMGWStationsController() {
     }
 
     @CrossOrigin

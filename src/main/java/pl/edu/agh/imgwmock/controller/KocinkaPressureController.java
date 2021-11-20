@@ -31,7 +31,7 @@ import java.util.stream.Stream;
 
 @Controller
 @RequestMapping("/kocinkaPressure")
-public class KocinkaPressureController {
+public class KocinkaPressureController implements DataController<DailyPrecipitation> {
     Logger logger = LoggerFactory.getLogger(KocinkaPressureController.class);
 
     @CrossOrigin
@@ -53,7 +53,8 @@ public class KocinkaPressureController {
 
     @CrossOrigin
     @GetMapping("/data")
-    public ResponseEntity<List<DailyPrecipitation>> getKocinka(
+    public ResponseEntity<List<DailyPrecipitation>> getData(
+            @RequestParam(value = "stationId", required = false) Optional<Long> stationId,
             @RequestParam(value = "date", required = false) Optional<String> dateString,
             @RequestParam(value = "dateFrom", required = false) Optional<String> dateFrom,
             @RequestParam(value = "dateTo", required = false) Optional<String> dateTo,
