@@ -204,11 +204,11 @@ public class KocinkaTemperatureController implements DataController<PolylinePoin
             HttpServletRequest request){
         Instant dateFromInst = Instant.parse(instantFrom);
         List<DailyPrecipitation> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
-        Instant[] timePointsAfter = (Instant[]) kocinkaTemperatureData.stream().map(DailyPrecipitation::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().toArray();
+        List<Instant> timePointsAfter = kocinkaTemperatureData.stream().map(DailyPrecipitation::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().collect(Collectors.toList());
 
         Instant instant;
-        if(timePointsAfter.length <= step) instant = timePointsAfter[timePointsAfter.length-1];
-        else instant = timePointsAfter[step];
+        if(timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
+        else instant = timePointsAfter.get(step);
 
         return new ResponseEntity<>(instant, HttpStatus.OK);
     }

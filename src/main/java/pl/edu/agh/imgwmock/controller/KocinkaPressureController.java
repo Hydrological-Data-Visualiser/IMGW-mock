@@ -147,11 +147,11 @@ public class KocinkaPressureController implements DataController<DailyPrecipitat
             HttpServletRequest request){
         Instant dateFromInst = Instant.parse(instantFrom);
         List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData();
-        Instant[] timePointsAfter = (Instant[]) kocinka.stream().map(DailyPrecipitation::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().toArray();
+        List<Instant> timePointsAfter = kocinka.stream().map(DailyPrecipitation::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().collect(Collectors.toList());
 
         Instant instant;
-        if(timePointsAfter.length <= step) instant = timePointsAfter[timePointsAfter.length-1];
-        else instant = timePointsAfter[step];
+        if(timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
+        else instant = timePointsAfter.get(step);
 
         return new ResponseEntity<>(instant, HttpStatus.OK);
     }
