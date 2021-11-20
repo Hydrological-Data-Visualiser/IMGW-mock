@@ -147,14 +147,14 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
     public ResponseEntity<Instant> getTimePointAfter(
             @RequestParam(value = "instantFrom") String instantFrom,
             @RequestParam(value = "step") int step,
-            HttpServletRequest request){
+            HttpServletRequest request) {
         Instant dateFromInst = Instant.parse(instantFrom);
         List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
-        Instant[] timePointsAfter = (Instant[]) dailyPrecipitations.stream().map(DailyPrecipitation::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().toArray();
+        List<Instant> timePointsAfter = dailyPrecipitations.stream().map(DailyPrecipitation::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().collect(Collectors.toList());
 
         Instant instant;
-        if(timePointsAfter.length <= step) instant = timePointsAfter[timePointsAfter.length-1];
-        else instant = timePointsAfter[step];
+        if(timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
+        else instant = timePointsAfter.get(step);
 
         return new ResponseEntity<>(instant, HttpStatus.OK);
     }

@@ -85,11 +85,11 @@ public class PolygonController implements DataController<Polygon> {
             HttpServletRequest request){
         Instant dateFromInst = Instant.parse(instantFrom);
         List<Polygon> polygons = CSVUtils.getPolygons("src/main/resources/polygons.json", Optional.of(instantFrom));
-        Instant[] timePointsAfter = (Instant[]) polygons.stream().map(Polygon::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().toArray();
+        List<Instant> timePointsAfter = polygons.stream().map(Polygon::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().collect(Collectors.toList());
 
         Instant instant;
-        if(timePointsAfter.length <= step) instant = timePointsAfter[timePointsAfter.length-1];
-        else instant = timePointsAfter[step];
+        if(timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
+        else instant = timePointsAfter.get(step);
 
         return new ResponseEntity<>(instant, HttpStatus.OK);
     }
