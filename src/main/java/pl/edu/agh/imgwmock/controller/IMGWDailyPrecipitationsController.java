@@ -140,4 +140,22 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
         List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
         return dailyPrecipitations.stream().map(a -> LocalDate.ofInstant(a.getDate(), ZoneId.systemDefault())).distinct().collect(Collectors.toList());
     }
+
+    @CrossOrigin
+    @GetMapping("/timePointsAfter")
+    @Override
+    public ResponseEntity<Instant> getTimePointAfter(
+            @RequestParam(value = "instantFrom") String instantFrom,
+            @RequestParam(value = "step") int step,
+            HttpServletRequest request){
+        Instant dateFromInst = Instant.parse(instantFrom);
+        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
+        Instant[] timePointsAfter = (Instant[]) dailyPrecipitations.stream().map(DailyPrecipitation::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().toArray();
+
+        Instant instant;
+        if(timePointsAfter.length <= step) instant = timePointsAfter[timePointsAfter.length-1];
+        else instant = timePointsAfter[step];
+
+        return new ResponseEntity<>(instant, HttpStatus.OK);
+    }
 }

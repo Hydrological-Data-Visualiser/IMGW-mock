@@ -9,10 +9,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import pl.edu.agh.imgwmock.model.DailyPrecipitation;
-import pl.edu.agh.imgwmock.model.DataType;
-import pl.edu.agh.imgwmock.model.Info;
-import pl.edu.agh.imgwmock.model.Station;
+import pl.edu.agh.imgwmock.model.*;
 import pl.edu.agh.imgwmock.utils.CSVUtils;
 import pl.edu.agh.imgwmock.utils.DailyPrecipitationUtils;
 import pl.edu.agh.imgwmock.utils.KocinkaUtils;
@@ -139,5 +136,23 @@ public class KocinkaPressureController implements DataController<DailyPrecipitat
     private List<LocalDate> getAvailableDates() {
         List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData();
         return kocinka.stream().map(a -> LocalDate.ofInstant(a.getDate(), ZoneId.systemDefault())).distinct().collect(Collectors.toList());
+    }
+
+    @CrossOrigin
+    @GetMapping("/timePointsAfter")
+    @Override
+    public ResponseEntity<Instant> getTimePointAfter(
+            @RequestParam(value = "instantFrom") String instantFrom,
+            @RequestParam(value = "step") int step,
+            HttpServletRequest request){
+        Instant dateFromInst = Instant.parse(instantFrom);
+        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData();
+        Instant[] timePointsAfter = (Instant[]) kocinka.stream().map(DailyPrecipitation::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().toArray();
+
+        Instant instant;
+        if(timePointsAfter.length <= step) instant = timePointsAfter[timePointsAfter.length-1];
+        else instant = timePointsAfter[step];
+
+        return new ResponseEntity<>(instant, HttpStatus.OK);
     }
 }
