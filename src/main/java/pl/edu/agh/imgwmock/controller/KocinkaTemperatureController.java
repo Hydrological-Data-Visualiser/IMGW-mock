@@ -151,14 +151,12 @@ public class KocinkaTemperatureController implements DataController<PolylinePoin
         return closestStation.get();
     }
 
-    private Stream<DailyPrecipitation> temperatureBetween(String instantFrom, int length) {
-        List<DailyPrecipitation> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
-        Instant dateFromInst = Instant.parse(instantFrom).minusSeconds(900);
-        Instant dateToInst = DailyPrecipitationUtils.getInstantAfterDistinct(kocinkaTemperatureData, dateFromInst, length);
-        return kocinkaTemperatureData.stream().filter(
+    private Stream<DailyPrecipitation> pressureBetween(Instant instantFrom, Instant instantTo) {
+        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData();
+        return kocinka.stream().filter(
                 dailyPrecipitation -> {
                     Instant date = dailyPrecipitation.getDate();
-                    return !date.isBefore(dateFromInst) && !date.isAfter(dateToInst);
+                    return !date.isBefore(instantFrom) && !date.isAfter(instantTo);
                 });
     }
 
@@ -168,10 +166,19 @@ public class KocinkaTemperatureController implements DataController<PolylinePoin
             @RequestParam(value = "instantFrom") String instantFrom,
             @RequestParam(value = "length") int length,
             HttpServletRequest request) {
-        OptionalDouble minValue =
-                temperatureBetween(instantFrom, length).mapToDouble(DailyPrecipitation::getValue).min();
+        Instant dateFromInst = Instant.parse(instantFrom);
+        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaTemperatureData();
+        List<Instant> aggregated = getAggregatedTimePoints(kocinka, dateFromInst, Instant.MAX);
+        Instant dateToInst;
+        if(aggregated.size() >= length) dateToInst = aggregated.get(length - 1);
+        else dateToInst = aggregated.get(aggregated.size()-1);
+        dateToInst = dateToInst.plusSeconds(900);
+        dateFromInst = dateFromInst.minusSeconds(900);
 
-        if(minValue.isPresent())
+        OptionalDouble minValue =
+                pressureBetween(dateFromInst, dateToInst).mapToDouble(DailyPrecipitation::getValue).min();
+
+        if (minValue.isPresent())
             return new ResponseEntity<>(minValue.getAsDouble(), HttpStatus.OK);
         else return new ResponseEntity<>(0.0, HttpStatus.OK);
     }
@@ -182,10 +189,19 @@ public class KocinkaTemperatureController implements DataController<PolylinePoin
             @RequestParam(value = "instantFrom") String instantFrom,
             @RequestParam(value = "length") int length,
             HttpServletRequest request) {
-        OptionalDouble maxValue =
-                temperatureBetween(instantFrom, length).mapToDouble(DailyPrecipitation::getValue).max();
+        Instant dateFromInst = Instant.parse(instantFrom);
+        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaTemperatureData();
+        List<Instant> aggregated = getAggregatedTimePoints(kocinka, dateFromInst, Instant.MAX);
+        Instant dateToInst;
+        if(aggregated.size() >= length) dateToInst = aggregated.get(length - 1);
+        else dateToInst = aggregated.get(aggregated.size()-1);
+        dateToInst = dateToInst.plusSeconds(900);
+        dateFromInst = dateFromInst.minusSeconds(900);
 
-        if(maxValue.isPresent())
+        OptionalDouble maxValue =
+                pressureBetween(dateFromInst, dateToInst).mapToDouble(DailyPrecipitation::getValue).max();
+
+        if (maxValue.isPresent())
             return new ResponseEntity<>(maxValue.getAsDouble(), HttpStatus.OK);
         else return new ResponseEntity<>(0.0, HttpStatus.OK);
     }
@@ -204,12 +220,47 @@ public class KocinkaTemperatureController implements DataController<PolylinePoin
             HttpServletRequest request){
         Instant dateFromInst = Instant.parse(instantFrom);
         List<DailyPrecipitation> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
-        List<Instant> timePointsAfter = kocinkaTemperatureData.stream().map(DailyPrecipitation::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().collect(Collectors.toList());
+
+        List<Instant> timePointsAfter = getAggregatedTimePoints(kocinkaTemperatureData, dateFromInst, Instant.MAX);
 
         Instant instant;
         if(timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
         else instant = timePointsAfter.get(step);
 
         return new ResponseEntity<>(instant, HttpStatus.OK);
+    }
+
+    @CrossOrigin 
+    @GetMapping("/dayTimePoints")
+    @Override
+    public ResponseEntity getDayTimePoints(
+            @RequestParam(value = "date") String dateString,
+            HttpServletRequest request){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        Instant instantFrom = LocalDate.parse(dateString, formatter).atTime(0, 0, 0).toInstant(ZoneOffset.UTC);
+        Instant instantTo = LocalDate.parse(dateString, formatter).atTime(23, 59, 59).toInstant(ZoneOffset.UTC);
+        
+        List<DailyPrecipitation> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
+
+        List<Instant> ret = getAggregatedTimePoints(kocinkaTemperatureData, instantFrom, instantTo);
+
+        return new ResponseEntity<>(ret, HttpStatus.OK);
+    }
+
+    private List<Instant> getAggregatedTimePoints(List<DailyPrecipitation> list, Instant instantFrom, Instant instantTo){
+        List<Instant> dayTimePoints = list.stream().map(DailyPrecipitation::getDate).filter(date -> !date.isBefore(instantFrom) && !date.isAfter(instantTo)).sorted().distinct().collect(Collectors.toList());
+
+        ArrayList<Instant> hours = new ArrayList<Instant>();
+        for(Instant i : dayTimePoints){
+            if (!hours.contains(i)) {
+                boolean canAdd = true;
+                for(Instant j : hours) {
+                    if (j.minusSeconds(900).isBefore(i) && j.plusSeconds(900).isAfter(i)) canAdd = false;
+                }
+                if(canAdd) hours.add(i);
+            }
+        }
+
+        return hours.stream().sorted().distinct().collect(Collectors.toList());
     }
 }

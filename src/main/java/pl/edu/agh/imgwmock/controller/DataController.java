@@ -38,4 +38,9 @@ public interface DataController<T> {
             @RequestParam(value = "step") int step,
             HttpServletRequest request);
 
+    ResponseEntity<List<Instant>> getDayTimePoints(
+            @RequestParam(value = "date") String dateString,
+            HttpServletRequest request
+    );
+
 }
