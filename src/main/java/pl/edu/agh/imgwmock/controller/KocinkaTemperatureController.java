@@ -151,8 +151,8 @@ public class KocinkaTemperatureController implements DataController<PolylinePoin
         return closestStation.get();
     }
 
-    private Stream<DailyPrecipitation> pressureBetween(Instant instantFrom, Instant instantTo) {
-        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData();
+    private Stream<DailyPrecipitation> temperatureBetween(Instant instantFrom, Instant instantTo) {
+        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaTemperatureData();
         return kocinka.stream().filter(
                 dailyPrecipitation -> {
                     Instant date = dailyPrecipitation.getDate();
@@ -176,7 +176,7 @@ public class KocinkaTemperatureController implements DataController<PolylinePoin
         dateFromInst = dateFromInst.minusSeconds(900);
 
         OptionalDouble minValue =
-                pressureBetween(dateFromInst, dateToInst).mapToDouble(DailyPrecipitation::getValue).min();
+                temperatureBetween(dateFromInst, dateToInst).mapToDouble(DailyPrecipitation::getValue).min();
 
         if (minValue.isPresent())
             return new ResponseEntity<>(minValue.getAsDouble(), HttpStatus.OK);
@@ -199,7 +199,7 @@ public class KocinkaTemperatureController implements DataController<PolylinePoin
         dateFromInst = dateFromInst.minusSeconds(900);
 
         OptionalDouble maxValue =
-                pressureBetween(dateFromInst, dateToInst).mapToDouble(DailyPrecipitation::getValue).max();
+                temperatureBetween(dateFromInst, dateToInst).mapToDouble(DailyPrecipitation::getValue).max();
 
         if (maxValue.isPresent())
             return new ResponseEntity<>(maxValue.getAsDouble(), HttpStatus.OK);

@@ -184,9 +184,9 @@ public class KocinkaPressureController implements DataController<DailyPrecipitat
         Instant instantFrom = LocalDate.parse(dateString, formatter).atTime(0, 0, 0).toInstant(ZoneOffset.UTC);
         Instant instantTo = LocalDate.parse(dateString, formatter).atTime(23, 59, 59).toInstant(ZoneOffset.UTC);
 
-        List<DailyPrecipitation> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
+        List<DailyPrecipitation> kocinkaPressureData = KocinkaUtils.getKocinkaPressureData();
 
-        List<Instant> ret = getAggregatedTimePoints(kocinkaTemperatureData, instantFrom, instantTo);
+        List<Instant> ret = getAggregatedTimePoints(kocinkaPressureData, instantFrom, instantTo);
 
         return new ResponseEntity<>(ret, HttpStatus.OK);
     }
