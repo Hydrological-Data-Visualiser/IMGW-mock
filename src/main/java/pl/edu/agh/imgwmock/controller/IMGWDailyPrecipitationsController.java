@@ -158,4 +158,20 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
 
         return new ResponseEntity<>(instant, HttpStatus.OK);
     }
+
+    @CrossOrigin
+    @GetMapping("/dayTimePoints")
+    @Override
+    public ResponseEntity<List<Instant>> getDayTimePoints(
+            @RequestParam(value = "date") String dateString,
+            HttpServletRequest request){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        Instant instantFrom = LocalDate.parse(dateString, formatter).atTime(0, 0, 0).minusSeconds(1).toInstant(ZoneOffset.UTC);
+        Instant instantTo = LocalDate.parse(dateString, formatter).atTime(23, 59, 59).toInstant(ZoneOffset.UTC);
+
+        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
+        List<Instant> baseDayTimePoints = dailyPrecipitations.stream().map(DailyPrecipitation::getDate).filter(date -> !date.isBefore(instantFrom) && !date.isAfter(instantTo)).sorted().distinct().collect(Collectors.toList());
+
+        return new ResponseEntity<>(baseDayTimePoints, HttpStatus.OK);
+    }
 }

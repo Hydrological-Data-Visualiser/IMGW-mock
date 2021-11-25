@@ -20,10 +20,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -92,5 +91,16 @@ public class PolygonController implements DataController<Polygon> {
         else instant = timePointsAfter.get(step);
 
         return new ResponseEntity<>(instant, HttpStatus.OK);
+    }
+
+    @CrossOrigin 
+    @GetMapping("/dayTimePoints")
+    @Override
+    public ResponseEntity getDayTimePoints(
+            @RequestParam(value = "date") String dateString,
+            HttpServletRequest request){
+        List<Polygon> polygons = CSVUtils.getPolygons("src/main/resources/polygons.json", Optional.empty());
+        ArrayList<Instant> dayTimePoints = new ArrayList(Collections.singleton(polygons.get(0).getDate()));
+        return new ResponseEntity<>(dayTimePoints, HttpStatus.OK);
     }
 }
