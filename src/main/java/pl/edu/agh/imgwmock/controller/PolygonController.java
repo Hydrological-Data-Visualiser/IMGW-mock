@@ -37,7 +37,7 @@ public class PolygonController implements DataController<Polygon> {
         return new ResponseEntity<>(info, HttpStatus.OK);
     }
 
-    private List<LocalDate> getAvailableDates() {
+    protected List<LocalDate> getAvailableDates() {
         List<LocalDate> list = new ArrayList<>();
         for (int i = 5; i < 25; i++) {
             list.add(LocalDate.of(2021, Month.SEPTEMBER, i));

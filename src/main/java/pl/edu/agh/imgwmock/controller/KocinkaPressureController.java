@@ -150,7 +150,7 @@ public class KocinkaPressureController implements DataController<DailyPrecipitat
         else return new ResponseEntity<>(0.0, HttpStatus.OK);
     }
 
-    private List<LocalDate> getAvailableDates() {
+    protected List<LocalDate> getAvailableDates() {
         List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData();
         return kocinka.stream().map(a -> LocalDate.ofInstant(a.getDate(), ZoneId.systemDefault())).distinct().collect(Collectors.toList());
     }
