@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import pl.edu.agh.imgwmock.model.DailyPrecipitation;
 import pl.edu.agh.imgwmock.model.Station;
-import pl.edu.agh.imgwmock.repository.StationRepository;
 import pl.edu.agh.imgwmock.utils.CSVUtils;
 import pl.edu.agh.imgwmock.utils.ImgwUtils;
 

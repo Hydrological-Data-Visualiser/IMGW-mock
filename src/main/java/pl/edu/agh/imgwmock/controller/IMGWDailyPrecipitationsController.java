@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import pl.edu.agh.imgwmock.model.DailyPrecipitation;
 import pl.edu.agh.imgwmock.model.DataType;
 import pl.edu.agh.imgwmock.model.Info;
-import pl.edu.agh.imgwmock.repository.DailyPrecipitationRepository;
 import pl.edu.agh.imgwmock.utils.DailyPrecipitationUtils;
 import pl.edu.agh.imgwmock.utils.ImgwUtils;
 
