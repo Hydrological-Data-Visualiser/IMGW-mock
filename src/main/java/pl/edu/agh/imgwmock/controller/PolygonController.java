@@ -9,19 +9,15 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import pl.edu.agh.imgwmock.model.DailyPrecipitation;
 import pl.edu.agh.imgwmock.model.DataType;
 import pl.edu.agh.imgwmock.model.Info;
 import pl.edu.agh.imgwmock.model.Polygon;
 import pl.edu.agh.imgwmock.utils.CSVUtils;
-import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -63,7 +59,8 @@ public class PolygonController implements DataController<Polygon> {
     @GetMapping("/min")
     @Override
     public ResponseEntity<Double> getMinValue(String instantFrom, int length, HttpServletRequest request) {
-        List<Polygon> polygons = CSVUtils.getPolygons("src/main/resources/polygons.json", Optional.of(instantFrom));
+        List<Polygon> polygons = CSVUtils.getPolygons("src/main/resources/polygons.json", Optional.of(instantFrom))
+                .stream().filter(polygon -> polygon.getValue() != null).collect(Collectors.toList());
         return new ResponseEntity<>(polygons.stream().sorted(Comparator.comparing(Polygon::getValue)).collect(Collectors.toList()).get(0).getValue(), HttpStatus.OK);
     }
 
@@ -71,8 +68,9 @@ public class PolygonController implements DataController<Polygon> {
     @GetMapping("/max")
     @Override
     public ResponseEntity<Double> getMaxValue(String instantFrom, int length, HttpServletRequest request) {
-        List<Polygon> polygons = CSVUtils.getPolygons("src/main/resources/polygons.json", Optional.of(instantFrom));
-        return new ResponseEntity<>(polygons.stream().sorted(Comparator.comparing(Polygon::getValue)).collect(Collectors.toList()).get(polygons.size()-1).getValue(), HttpStatus.OK);
+        List<Polygon> polygons = CSVUtils.getPolygons("src/main/resources/polygons.json", Optional.of(instantFrom))
+                .stream().filter(polygon -> polygon.getValue() != null).collect(Collectors.toList());
+        return new ResponseEntity<>(polygons.stream().sorted(Comparator.comparing(Polygon::getValue)).collect(Collectors.toList()).get(polygons.size() - 1).getValue(), HttpStatus.OK);
     }
 
     @CrossOrigin
@@ -81,25 +79,27 @@ public class PolygonController implements DataController<Polygon> {
     public ResponseEntity<Instant> getTimePointAfter(
             @RequestParam(value = "instantFrom") String instantFrom,
             @RequestParam(value = "step") int step,
-            HttpServletRequest request){
+            HttpServletRequest request) {
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<Polygon> polygons = CSVUtils.getPolygons("src/main/resources/polygons.json", Optional.of(instantFrom));
+        List<Polygon> polygons = CSVUtils.getPolygons("src/main/resources/polygons.json", Optional.of(instantFrom))
+                .stream().filter(polygon -> polygon.getValue() != null).collect(Collectors.toList());
         List<Instant> timePointsAfter = polygons.stream().map(Polygon::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().collect(Collectors.toList());
 
         Instant instant;
-        if(timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
+        if (timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
         else instant = timePointsAfter.get(step);
 
         return new ResponseEntity<>(instant, HttpStatus.OK);
     }
 
-    @CrossOrigin 
+    @CrossOrigin
     @GetMapping("/dayTimePoints")
     @Override
     public ResponseEntity getDayTimePoints(
             @RequestParam(value = "date") String dateString,
-            HttpServletRequest request){
-        List<Polygon> polygons = CSVUtils.getPolygons("src/main/resources/polygons.json", Optional.empty());
+            HttpServletRequest request) {
+        List<Polygon> polygons = CSVUtils.getPolygons("src/main/resources/polygons.json", Optional.empty())
+                .stream().filter(polygon -> polygon.getValue() != null).collect(Collectors.toList());
         ArrayList<Instant> dayTimePoints = new ArrayList(Collections.singleton(polygons.get(0).getDate()));
         return new ResponseEntity<>(dayTimePoints, HttpStatus.OK);
     }
