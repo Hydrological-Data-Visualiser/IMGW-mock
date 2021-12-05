@@ -96,7 +96,8 @@ public class KocinkaPressureController implements DataController<DailyPrecipitat
     }
 
     private Stream<DailyPrecipitation> pressureBetween(Instant instantFrom, Instant instantTo) {
-        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData();
+        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData()
+                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         return kocinka.stream().filter(
                 dailyPrecipitation -> {
                     Instant date = dailyPrecipitation.getDate();
@@ -111,7 +112,8 @@ public class KocinkaPressureController implements DataController<DailyPrecipitat
             @RequestParam(value = "length") int length,
             HttpServletRequest request) {
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData();
+        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData()
+                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         List<Instant> aggregated = getAggregatedTimePoints(kocinka, dateFromInst, Instant.MAX);
         Instant dateToInst;
         if(aggregated.size() >= length) dateToInst = aggregated.get(length - 1);
@@ -151,7 +153,8 @@ public class KocinkaPressureController implements DataController<DailyPrecipitat
     }
 
     protected List<LocalDate> getAvailableDates() {
-        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData();
+        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData()
+                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         return kocinka.stream().map(a -> LocalDate.ofInstant(a.getDate(), ZoneId.systemDefault())).distinct().collect(Collectors.toList());
     }
 
@@ -163,7 +166,8 @@ public class KocinkaPressureController implements DataController<DailyPrecipitat
             @RequestParam(value = "step") int step,
             HttpServletRequest request){
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData();
+        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaPressureData()
+                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
 
         List<Instant> timePointsAfter = getAggregatedTimePoints(kocinka, dateFromInst, Instant.MAX);
 
@@ -184,7 +188,8 @@ public class KocinkaPressureController implements DataController<DailyPrecipitat
         Instant instantFrom = LocalDate.parse(dateString, formatter).atTime(0, 0, 0).toInstant(ZoneOffset.UTC);
         Instant instantTo = LocalDate.parse(dateString, formatter).atTime(23, 59, 59).toInstant(ZoneOffset.UTC);
 
-        List<DailyPrecipitation> kocinkaPressureData = KocinkaUtils.getKocinkaPressureData();
+        List<DailyPrecipitation> kocinkaPressureData = KocinkaUtils.getKocinkaPressureData()
+                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
 
         List<Instant> ret = getAggregatedTimePoints(kocinkaPressureData, instantFrom, instantTo);
 

@@ -61,7 +61,8 @@ public class KocinkaController implements DataController<PolylinePoint> {
     @GetMapping("/min")
     @Override
     public ResponseEntity<Double> getMinValue(String instantFrom, int length, HttpServletRequest request) {
-        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.of(instantFrom));
+        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.of(instantFrom))
+                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylinePoint::getValue)).collect(Collectors.toList()).get(0).getValue(), HttpStatus.OK);
     }
 
@@ -69,7 +70,8 @@ public class KocinkaController implements DataController<PolylinePoint> {
     @GetMapping("/max")
     @Override
     public ResponseEntity<Double> getMaxValue(String instantFrom, int length, HttpServletRequest request) {
-        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.of(instantFrom));
+        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.of(instantFrom))
+                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylinePoint::getValue)).collect(Collectors.toList()).get(kocinka.size()-1).getValue(), HttpStatus.OK);
     }
 
@@ -81,7 +83,8 @@ public class KocinkaController implements DataController<PolylinePoint> {
             @RequestParam(value = "step") int step,
             HttpServletRequest request){
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.of(instantFrom));
+        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.of(instantFrom))
+                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         List<Instant> timePointsAfter = kocinka.stream().map(PolylinePoint::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().collect(Collectors.toList());
 
         Instant instant;
@@ -97,7 +100,8 @@ public class KocinkaController implements DataController<PolylinePoint> {
     public ResponseEntity getDayTimePoints(
             @RequestParam(value = "date") String dateString,
             HttpServletRequest request){
-        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.empty());
+        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.empty())
+                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         ArrayList<Instant> dayTimePoints = new ArrayList(Collections.singleton(kocinka.get(0).getDate()));
         return new ResponseEntity<>(dayTimePoints, HttpStatus.OK);
     }
