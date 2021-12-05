@@ -115,10 +115,10 @@ public class ModflowDataConverter {
         var layer = data.get(0).get(0);
         Long id = 0L;
         List<Polygon> result = new ArrayList<>();
-//        for (int i = 0; i < layer.size(); i++) {
-//            for (int j = 0; j < layer.get(i).size(); j++) {
-        for (int i = 0; i < 35; i++) {
-            for (int j = 0; j < 35; j++) {
+        for (int i = 0; i < layer.size(); i++) {
+            for (int j = 0; j < layer.get(i).size(); j++) {
+//        for (int i = 0; i < 35; i++) {
+//            for (int j = 0; j < 35; j++) {
                 result.add(new Polygon(id, List.of(
                         new Double[]{convertMetersToDegree(longitude, i), convertMetersToDegree(latitude, (-1)*j)},
                         new Double[]{convertMetersToDegree(longitude, i+1), convertMetersToDegree(latitude, (-1)*j)},
