@@ -37,13 +37,15 @@ public class ModflowDataControllerTest implements DataController<Polygon> {
     @CrossOrigin
     @GetMapping("/min")
     public ResponseEntity<Double> getMinValue(String instantFrom, int length, HttpServletRequest request) {
-        return new ResponseEntity<>(converter.getMinValue(), HttpStatus.OK);
+        List<Double> data = converter.getData().stream().map(Polygon::getValue).filter(value -> value != -999.00).sorted().collect(Collectors.toList());
+        return new ResponseEntity<>(data.get(0), HttpStatus.OK);
     }
 
     @CrossOrigin
     @GetMapping("/max")
     public ResponseEntity<Double> getMaxValue(String instantFrom, int length, HttpServletRequest request) {
-        return new ResponseEntity<>(converter.getMaxValue(), HttpStatus.OK);
+        List<Double> data = converter.getData().stream().map(Polygon::getValue).filter(value -> value != -999.00).sorted().collect(Collectors.toList());
+        return new ResponseEntity<>(data.get(data.size() - 1), HttpStatus.OK);
     }
 
     @CrossOrigin
@@ -56,7 +58,7 @@ public class ModflowDataControllerTest implements DataController<Polygon> {
     @GetMapping("/dayTimePoints")
     public ResponseEntity getDayTimePoints(
             @RequestParam(value = "date") String dateString,
-            HttpServletRequest request){
+            HttpServletRequest request) {
         return new ResponseEntity<>(List.of(converter.getData().get(0).getDate()), HttpStatus.OK);
     }
 
@@ -69,7 +71,12 @@ public class ModflowDataControllerTest implements DataController<Polygon> {
             @RequestParam(value = "dateTo", required = false) Optional<String> dateTo,
             @RequestParam(value = "dateInstant", required = false) Optional<String> instant,
             HttpServletRequest request) {
-        List<Polygon> data = converter.getData().stream().filter(a -> a.getValue() != -999.00).collect(Collectors.toList());
+//        List<Polygon> data = converter.getData().stream().filter(a -> a.getValue() != -999.00).collect(Collectors.toList());
+        List<Polygon> data = converter.getData().stream().peek(a ->{
+            if (a.getValue() == -999.00) {
+                a.setValue(null);
+            }
+        }).collect(Collectors.toList());
         return new ResponseEntity<>(data, HttpStatus.OK);
     }
 }
