@@ -56,7 +56,7 @@ public class ModflowDataConverter {
 
     public Info getInfo() {
         return new Info(info.getName(), info.getName(), "Modflow model: " + info.getModflow_model(),
-                DataType.POLYGON, "no value", "#FFF000", "#000FFF", getAvailableDates());
+                DataType.POLYGON, "[metric]", "#FFF000", "#000FFF", getAvailableDates());
     }
 
     public List<Polygon> getData() {
