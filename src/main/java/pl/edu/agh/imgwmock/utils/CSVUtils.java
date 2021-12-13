@@ -60,4 +60,26 @@ public class CSVUtils {
         }
         return Arrays.asList(data);
     }
+
+
+    public static List<Polygon> getNewPolygons(String pathToFile) {
+        Gson gson = new GsonBuilder().registerTypeAdapter(Instant.class, new JsonDeserializer<Instant>() {
+            @Override
+            public Instant deserialize(JsonElement json, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+                Instant instant = Instant.parse(json.getAsJsonPrimitive().getAsString());
+                return instant;
+            }
+        }).create();
+        Polygon[] data = {};
+        try (JsonReader reader = new JsonReader(new FileReader(pathToFile))) {
+            data = gson.fromJson(reader, Polygon[].class);
+            return Arrays.asList(data)
+                    .stream()
+                    .map(polygon -> new Polygon(polygon.getId(), polygon.getPoints(), polygon.getValue(), polygon.getDate()))
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return Arrays.asList(data);
+    }
 }
