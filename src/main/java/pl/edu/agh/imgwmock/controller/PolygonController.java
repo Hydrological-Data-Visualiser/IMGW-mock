@@ -9,17 +9,22 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import pl.edu.agh.imgwmock.model.DailyPrecipitation;
 import pl.edu.agh.imgwmock.model.DataType;
 import pl.edu.agh.imgwmock.model.Info;
 import pl.edu.agh.imgwmock.model.Polygon;
 import pl.edu.agh.imgwmock.utils.CSVUtils;
+import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Controller
 @RequestMapping("/polygons")
@@ -74,22 +79,76 @@ public class PolygonController implements DataController<Polygon> {
         return new ResponseEntity<>(polygons, HttpStatus.OK);
     }
 
+    private Stream<Polygon> pressureBetween(Instant instantFrom, Instant instantTo) {
+        List<Polygon> polygons = CSVUtils.getNewPolygons("src/main/resources/polygons.json")
+                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
+        return polygons.stream().filter(
+                dailyPrecipitation -> {
+                    Instant date = dailyPrecipitation.getDate();
+                    return !date.isBefore(instantFrom) && !date.isAfter(instantTo);
+                });
+    }
+
+    private List<Instant> getAggregatedTimePoints(List<Polygon> list, Instant instantFrom, Instant instantTo){
+        List<Instant> dayTimePoints = list.stream().map(Polygon::getDate).filter(date -> !date.isBefore(instantFrom) && !date.isAfter(instantTo)).sorted().distinct().collect(Collectors.toList());
+
+        ArrayList<Instant> hours = new ArrayList<Instant>();
+        for(Instant i : dayTimePoints){
+            if (!hours.contains(i)) {
+                boolean canAdd = true;
+                for(Instant j : hours) {
+                    if (j.minusSeconds(60 * 15).isBefore(i) && j.plusSeconds(60 * 15).isAfter(i)) canAdd = false;
+                }
+                if(canAdd) hours.add(i);
+            }
+        }
+
+        return hours.stream().sorted().distinct().collect(Collectors.toList());
+    }
+
+
     @CrossOrigin
     @GetMapping("/min")
     @Override
     public ResponseEntity<Double> getMinValue(String instantFrom, int length, HttpServletRequest request) {
-        List<Polygon> polygons = CSVUtils.getNewPolygons("src/main/resources/polygons.json")
-                .stream().filter(polygon -> polygon.getValue() != null).collect(Collectors.toList());
-        return new ResponseEntity<>(polygons.stream().sorted(Comparator.comparing(Polygon::getValue)).collect(Collectors.toList()).get(0).getValue(), HttpStatus.OK);
+        Instant dateFromInst = Instant.parse(instantFrom);
+        List<Polygon> kocinka = CSVUtils.getNewPolygons("src/main/resources/polygons.json")
+                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
+        List<Instant> aggregated = getAggregatedTimePoints(kocinka, dateFromInst, Instant.MAX);
+        Instant dateToInst;
+        if(aggregated.size() >= length) dateToInst = aggregated.get(length - 1);
+        else dateToInst = aggregated.get(aggregated.size()-1);
+        dateToInst = dateToInst.plusSeconds(900);
+        dateFromInst = dateFromInst.minusSeconds(900);
+
+        OptionalDouble minValue =
+                pressureBetween(dateFromInst, dateToInst).mapToDouble(Polygon::getValue).min();
+
+        if (minValue.isPresent())
+            return new ResponseEntity<>(minValue.getAsDouble(), HttpStatus.OK);
+        else return new ResponseEntity<>(0.0, HttpStatus.OK);
     }
 
     @CrossOrigin
     @GetMapping("/max")
     @Override
     public ResponseEntity<Double> getMaxValue(String instantFrom, int length, HttpServletRequest request) {
-        List<Polygon> polygons = CSVUtils.getNewPolygons("src/main/resources/polygons.json")
-                .stream().filter(polygon -> polygon.getValue() != null).collect(Collectors.toList());
-        return new ResponseEntity<>(polygons.stream().sorted(Comparator.comparing(Polygon::getValue)).collect(Collectors.toList()).get(polygons.size() - 1).getValue(), HttpStatus.OK);
+        Instant dateFromInst = Instant.parse(instantFrom);
+        List<Polygon> kocinka = CSVUtils.getNewPolygons("src/main/resources/polygons.json")
+                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
+        List<Instant> aggregated = getAggregatedTimePoints(kocinka, dateFromInst, Instant.MAX);
+        Instant dateToInst;
+        if(aggregated.size() >= length) dateToInst = aggregated.get(length - 1);
+        else dateToInst = aggregated.get(aggregated.size()-1);
+        dateToInst = dateToInst.plusSeconds(900);
+        dateFromInst = dateFromInst.minusSeconds(900);
+
+        OptionalDouble maxValue =
+                pressureBetween(dateFromInst, dateToInst).mapToDouble(Polygon::getValue).max();
+
+        if (maxValue.isPresent())
+            return new ResponseEntity<>(maxValue.getAsDouble(), HttpStatus.OK);
+        else return new ResponseEntity<>(0.0, HttpStatus.OK);
     }
 
     @CrossOrigin
@@ -100,12 +159,13 @@ public class PolygonController implements DataController<Polygon> {
             @RequestParam(value = "step") int step,
             HttpServletRequest request) {
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<Polygon> polygons = CSVUtils.getNewPolygons("src/main/resources/polygons.json")
-                .stream().filter(polygon -> polygon.getValue() != null).collect(Collectors.toList());
-        List<Instant> timePointsAfter = polygons.stream().map(Polygon::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().collect(Collectors.toList());
+        List<Polygon> kocinka = CSVUtils.getNewPolygons("src/main/resources/polygons.json")
+                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
+
+        List<Instant> timePointsAfter = getAggregatedTimePoints(kocinka, dateFromInst, Instant.MAX);
 
         Instant instant;
-        if (timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
+        if(timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
         else instant = timePointsAfter.get(step);
 
         return new ResponseEntity<>(instant, HttpStatus.OK);
@@ -117,9 +177,15 @@ public class PolygonController implements DataController<Polygon> {
     public ResponseEntity getDayTimePoints(
             @RequestParam(value = "date") String dateString,
             HttpServletRequest request) {
-        List<Polygon> polygons = CSVUtils.getNewPolygons("src/main/resources/polygons.json")
-                .stream().filter(polygon -> polygon.getValue() != null).collect(Collectors.toList());
-        ArrayList<Instant> dayTimePoints = new ArrayList(Collections.singleton(polygons.get(0).getDate()));
-        return new ResponseEntity<>(dayTimePoints, HttpStatus.OK);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        Instant instantFrom = LocalDate.parse(dateString, formatter).atTime(0, 0, 0).toInstant(ZoneOffset.UTC);
+        Instant instantTo = LocalDate.parse(dateString, formatter).atTime(23, 59, 59).toInstant(ZoneOffset.UTC);
+
+        List<Polygon> kocinkaPressureData = CSVUtils.getNewPolygons("src/main/resources/polygons.json")
+                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
+
+        List<Instant> ret = getAggregatedTimePoints(kocinkaPressureData, instantFrom, instantTo);
+
+        return new ResponseEntity<>(ret, HttpStatus.OK);
     }
 }
