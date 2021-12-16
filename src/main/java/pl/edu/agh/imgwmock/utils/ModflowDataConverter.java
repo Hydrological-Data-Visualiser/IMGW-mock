@@ -2,7 +2,6 @@ package pl.edu.agh.imgwmock.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,19 +9,14 @@ import org.springframework.stereotype.Component;
 import pl.edu.agh.imgwmock.model.DataType;
 import pl.edu.agh.imgwmock.model.Info;
 import pl.edu.agh.imgwmock.model.ModflowModelInfo;
-import pl.edu.agh.imgwmock.model.Polygon;
+import pl.edu.agh.imgwmock.model.PolygonDataOld;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.DoubleSummaryStatistics;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 
 @Component
 @Setter
@@ -59,7 +53,7 @@ public class ModflowDataConverter {
                 DataType.POLYGON, "[metric]", "#FFF000", "#000FFF", getAvailableDates());
     }
 
-    public List<Polygon> getData() {
+    public List<PolygonDataOld> getData() {
         return convertDataToPolygons(Double.parseDouble(info.getLat()), Double.parseDouble(info.getLongitude()));
     }
 
@@ -111,15 +105,15 @@ public class ModflowDataConverter {
         return begin + index * METER_TO_DEGREE;
     }
 
-    private List<Polygon> convertDataToPolygons(Double latitude, Double longitude) {
+    private List<PolygonDataOld> convertDataToPolygons(Double latitude, Double longitude) {
         var layer = data.get(0).get(0);
         Long id = 0L;
-        List<Polygon> result = new ArrayList<>();
+        List<PolygonDataOld> result = new ArrayList<>();
         for (int i = 0; i < layer.size(); i++) {
             for (int j = 0; j < layer.get(i).size(); j++) {
 //        for (int i = 0; i < 35; i++) {
 //            for (int j = 0; j < 35; j++) {
-                result.add(new Polygon(id, List.of(
+                result.add(new PolygonDataOld(id, List.of(
                         new Double[]{convertMetersToDegree(longitude, i), convertMetersToDegree(latitude, (-1)*j)},
                         new Double[]{convertMetersToDegree(longitude, i+1), convertMetersToDegree(latitude, (-1)*j)},
                         new Double[]{convertMetersToDegree(longitude, i+1), convertMetersToDegree(latitude, (-1)*(j+1))},

@@ -8,19 +8,21 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import pl.edu.agh.imgwmock.model.DataType;
-import pl.edu.agh.imgwmock.model.Info;
-import pl.edu.agh.imgwmock.model.PolylinePoint;
+import org.springframework.web.bind.annotation.RequestParam;
+import pl.edu.agh.imgwmock.model.*;
+import pl.edu.agh.imgwmock.utils.NewKocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/kocinkaV2")
-public class KocinkaV2Controller extends KocinkaController implements DataController<PolylinePoint> {
+public class KocinkaV2Controller extends KocinkaController implements DataController<PolylineDataNew> {
     Logger logger = LoggerFactory.getLogger(KocinkaV2Controller.class);
 
     @CrossOrigin
@@ -37,4 +39,26 @@ public class KocinkaV2Controller extends KocinkaController implements DataContro
         }
         return list;
     }
+
+    @CrossOrigin
+    @GetMapping("/stations")
+    public ResponseEntity<List<Polyline>> getAllStations(
+            @RequestParam(value = "id", required = false) Optional<Long> id,
+            HttpServletRequest request
+    ) {
+        List<Polyline> stations = NewKocinkaUtils.getKocinkaStations();
+        if (id.isPresent()) {
+            Optional<Polyline> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
+            if (station.isPresent()) {
+                return new ResponseEntity<>(List.of(station.get()), HttpStatus.OK);
+            } else {
+                //not found
+                return new ResponseEntity<>(List.of(), HttpStatus.OK);
+            }
+        } else {
+            // no id - get all stations from database
+            return new ResponseEntity<>(stations, HttpStatus.OK);
+        }
+    }
+
 }

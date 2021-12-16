@@ -5,7 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.edu.agh.imgwmock.model.DailyPrecipitation;
+import pl.edu.agh.imgwmock.model.Point;
+import pl.edu.agh.imgwmock.model.PointData;
 import pl.edu.agh.imgwmock.model.DataType;
 import pl.edu.agh.imgwmock.model.Info;
 import pl.edu.agh.imgwmock.utils.DailyPrecipitationUtils;
@@ -18,6 +19,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.stream.Collectors;
@@ -25,7 +27,7 @@ import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/imgw")
-public class IMGWDailyPrecipitationsController implements DataController<DailyPrecipitation> {
+public class IMGWDailyPrecipitationsController implements DataController<PointData> {
     Logger logger = LoggerFactory.getLogger(IMGWDailyPrecipitationsController.class);
 
     public IMGWDailyPrecipitationsController() {
@@ -40,7 +42,7 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
 
     @CrossOrigin
     @GetMapping("/data")
-    public ResponseEntity<List<DailyPrecipitation>> getData(
+    public ResponseEntity<List<PointData>> getData(
             @RequestParam(value = "stationId", required = false) Optional<Long> stationId,
             @RequestParam(value = "date", required = false) Optional<String> dateString,
             @RequestParam(value = "dateFrom", required = false) Optional<String> dateFrom,
@@ -52,7 +54,7 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
 
         Optional<Instant> dateFromOpt = Optional.empty();
         Optional<Instant> dateToOpt = Optional.empty();
-        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull();
+        List<PointData> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull();
 
         if (dateString.isPresent()) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -84,8 +86,8 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
         return new ResponseEntity<>(dailyPrecipitations, HttpStatus.OK);
     }
 
-    private Stream<DailyPrecipitation> precipitationBetween(String instantFrom, int length) {
-        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull()
+    private Stream<PointData> precipitationBetween(String instantFrom, int length) {
+        List<PointData> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull()
                 .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
         Instant dateFromInst = Instant.parse(instantFrom).minusSeconds(900);
         Instant dateToInst = DailyPrecipitationUtils.getInstantAfterDistinct(dailyPrecipitations, dateFromInst, length);
@@ -103,7 +105,7 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
             @RequestParam(value = "length") int length,
             HttpServletRequest request) {
         OptionalDouble minValue =
-                precipitationBetween(instantFrom, length).mapToDouble(DailyPrecipitation::getValue).min();
+                precipitationBetween(instantFrom, length).mapToDouble(PointData::getValue).min();
 
         if (minValue.isPresent())
             return new ResponseEntity<>(minValue.getAsDouble(), HttpStatus.OK);
@@ -117,7 +119,7 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
             @RequestParam(value = "length") int length,
             HttpServletRequest request) {
         OptionalDouble maxValue =
-                precipitationBetween(instantFrom, length).mapToDouble(DailyPrecipitation::getValue).max();
+                precipitationBetween(instantFrom, length).mapToDouble(PointData::getValue).max();
 
         if (maxValue.isPresent())
             return new ResponseEntity<>(maxValue.getAsDouble(), HttpStatus.OK);
@@ -125,7 +127,7 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
     }
 
     private List<LocalDate> getAvailableDates() {
-        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull()
+        List<PointData> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull()
                 .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
         return dailyPrecipitations.stream().map(a -> LocalDate.ofInstant(a.getDate(), ZoneId.systemDefault())).distinct().collect(Collectors.toList());
     }
@@ -138,9 +140,9 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
             @RequestParam(value = "step") int step,
             HttpServletRequest request) {
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull()
+        List<PointData> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull()
                 .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
-        List<Instant> timePointsAfter = dailyPrecipitations.stream().map(DailyPrecipitation::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().collect(Collectors.toList());
+        List<Instant> timePointsAfter = dailyPrecipitations.stream().map(PointData::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().collect(Collectors.toList());
 
         Instant instant;
         if (timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
@@ -159,11 +161,33 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
         Instant instantFrom = LocalDate.parse(dateString, formatter).atTime(0, 0, 0).minusSeconds(1).toInstant(ZoneOffset.UTC);
         Instant instantTo = LocalDate.parse(dateString, formatter).atTime(23, 59, 59).toInstant(ZoneOffset.UTC);
 
-        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull()
+        List<PointData> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull()
                 .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
 
-        List<Instant> baseDayTimePoints = dailyPrecipitations.stream().map(DailyPrecipitation::getDate).filter(date -> !date.isBefore(instantFrom) && !date.isAfter(instantTo)).sorted().distinct().collect(Collectors.toList());
+        List<Instant> baseDayTimePoints = dailyPrecipitations.stream().map(PointData::getDate).filter(date -> !date.isBefore(instantFrom) && !date.isAfter(instantTo)).sorted().distinct().collect(Collectors.toList());
 
         return new ResponseEntity<>(baseDayTimePoints, HttpStatus.OK);
+    }
+
+    @CrossOrigin
+    @GetMapping("/stations")
+    public ResponseEntity<List<Point>> getAllStations(
+            @RequestParam(value = "id", required = false) Optional<Long> id,
+            HttpServletRequest request
+    ) {
+        logger.info("Getting station data: stationId = " + id.toString());
+        List<Point> stations = ImgwUtils.getStationsWhereAllDataAreNotNull();
+        if (id.isPresent()) {
+            Optional<Point> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
+            if (station.isPresent()) {
+                return new ResponseEntity<>(List.of(station.get()), HttpStatus.OK);
+            } else {
+                //not found
+                return new ResponseEntity<>(List.of(), HttpStatus.OK);
+            }
+        } else {
+            // no id - get all stations from database
+            return new ResponseEntity<>(stations, HttpStatus.OK);
+        }
     }
 }

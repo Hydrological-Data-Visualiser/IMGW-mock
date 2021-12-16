@@ -8,9 +8,8 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import pl.edu.agh.imgwmock.model.DataType;
 import pl.edu.agh.imgwmock.model.Info;
-import pl.edu.agh.imgwmock.model.Polygon;
+import pl.edu.agh.imgwmock.model.PolygonDataOld;
 import pl.edu.agh.imgwmock.utils.ModflowDataConverter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,7 +20,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Controller
 @RequestMapping("/modflow")
-public class ModflowDataController implements DataController<Polygon> {
+public class ModflowDataController implements DataController<PolygonDataOld> {
 
     private final ModflowDataConverter converter = new ModflowDataConverter();
 
@@ -60,7 +59,7 @@ public class ModflowDataController implements DataController<Polygon> {
 
     @CrossOrigin
     @GetMapping("/data")
-    public ResponseEntity<List<Polygon>> getData(
+    public ResponseEntity<List<PolygonDataOld>> getData(
             @RequestParam(value = "stationId", required = false) Optional<Long> stationId, // ignored
             @RequestParam(value = "date", required = false) Optional<String> dateString,
             @RequestParam(value = "dateFrom", required = false) Optional<String> dateFrom,

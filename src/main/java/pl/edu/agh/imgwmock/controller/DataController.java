@@ -1,10 +1,9 @@
 package pl.edu.agh.imgwmock.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import pl.edu.agh.imgwmock.model.DailyPrecipitation;
 import pl.edu.agh.imgwmock.model.Info;
+import pl.edu.agh.imgwmock.model.Station;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
@@ -42,5 +41,4 @@ public interface DataController<T> {
             @RequestParam(value = "date") String dateString,
             HttpServletRequest request
     );
-
 }

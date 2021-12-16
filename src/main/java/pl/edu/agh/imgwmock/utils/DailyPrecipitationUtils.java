@@ -1,16 +1,16 @@
 package pl.edu.agh.imgwmock.utils;
 
-import pl.edu.agh.imgwmock.model.DailyPrecipitation;
+import pl.edu.agh.imgwmock.model.PointData;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class DailyPrecipitationUtils {
-    public static Instant getInstantAfterDistinct(List<DailyPrecipitation> list, Instant countFrom, int length){
+    public static Instant getInstantAfterDistinct(List<PointData> list, Instant countFrom, int length){
         List<Instant> countedAfter =
                 list.stream()
-                        .map(DailyPrecipitation::getDate)
+                        .map(PointData::getDate)
                         .filter(date -> !date.isBefore(countFrom))
                         .sorted()
                         .distinct()

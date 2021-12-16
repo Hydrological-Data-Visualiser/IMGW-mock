@@ -10,22 +10,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import pl.edu.agh.imgwmock.model.*;
-import pl.edu.agh.imgwmock.utils.CSVUtils;
-import pl.edu.agh.imgwmock.utils.ImgwUtils;
 import pl.edu.agh.imgwmock.utils.KocinkaUtils;
+import pl.edu.agh.imgwmock.utils.NewKocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/kocinka")
-public class KocinkaController implements DataController<PolylinePoint> {
+public class KocinkaController implements DataController<PolylineDataNew> {
     Logger logger = LoggerFactory.getLogger(KocinkaController.class);
 
     @CrossOrigin
@@ -45,7 +42,7 @@ public class KocinkaController implements DataController<PolylinePoint> {
 
     @CrossOrigin
     @GetMapping("/data")
-    public ResponseEntity<List<PolylinePoint>> getData(
+    public ResponseEntity<List<PolylineDataNew>> getData(
             @RequestParam(value = "stationId", required = false) Optional<Long> stationId, // ignored
             @RequestParam(value = "date", required = false) Optional<String> dateString,
             @RequestParam(value = "dateFrom", required = false) Optional<String> dateFrom,
@@ -53,7 +50,7 @@ public class KocinkaController implements DataController<PolylinePoint> {
             @RequestParam(value = "dateInstant", required = false) Optional<String> instant,
             HttpServletRequest request) {
         logger.info("Getting Kocinka");
-        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", instant);
+        List<PolylineDataNew> kocinka = NewKocinkaUtils.getNewKocinkaRandomData(instant);
         return new ResponseEntity<>(kocinka, HttpStatus.OK);
     }
 
@@ -61,18 +58,18 @@ public class KocinkaController implements DataController<PolylinePoint> {
     @GetMapping("/min")
     @Override
     public ResponseEntity<Double> getMinValue(String instantFrom, int length, HttpServletRequest request) {
-        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.of(instantFrom))
+        List<PolylineDataOld> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.of(instantFrom))
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
-        return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylinePoint::getValue)).collect(Collectors.toList()).get(0).getValue(), HttpStatus.OK);
+        return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylineDataOld::getValue)).collect(Collectors.toList()).get(0).getValue(), HttpStatus.OK);
     }
 
     @CrossOrigin
     @GetMapping("/max")
     @Override
     public ResponseEntity<Double> getMaxValue(String instantFrom, int length, HttpServletRequest request) {
-        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.of(instantFrom))
+        List<PolylineDataOld> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.of(instantFrom))
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
-        return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylinePoint::getValue)).collect(Collectors.toList()).get(kocinka.size()-1).getValue(), HttpStatus.OK);
+        return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylineDataOld::getValue)).collect(Collectors.toList()).get(kocinka.size()-1).getValue(), HttpStatus.OK);
     }
 
     @CrossOrigin
@@ -83,9 +80,9 @@ public class KocinkaController implements DataController<PolylinePoint> {
             @RequestParam(value = "step") int step,
             HttpServletRequest request){
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.of(instantFrom))
+        List<PolylineDataOld> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.of(instantFrom))
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
-        List<Instant> timePointsAfter = kocinka.stream().map(PolylinePoint::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().collect(Collectors.toList());
+        List<Instant> timePointsAfter = kocinka.stream().map(PolylineDataOld::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().collect(Collectors.toList());
 
         Instant instant;
         if(timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
@@ -100,9 +97,31 @@ public class KocinkaController implements DataController<PolylinePoint> {
     public ResponseEntity getDayTimePoints(
             @RequestParam(value = "date") String dateString,
             HttpServletRequest request){
-        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.empty())
+        List<PolylineDataOld> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.empty())
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         ArrayList<Instant> dayTimePoints = new ArrayList(Collections.singleton(kocinka.get(0).getDate()));
         return new ResponseEntity<>(dayTimePoints, HttpStatus.OK);
     }
+
+    @CrossOrigin
+    @GetMapping("/stations")
+    public ResponseEntity<List<Polyline>> getAllStations(
+            @RequestParam(value = "id", required = false) Optional<Long> id,
+            HttpServletRequest request
+    ) {
+        List<Polyline> stations = NewKocinkaUtils.getKocinkaStations();
+        if (id.isPresent()) {
+            Optional<Polyline> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
+            if (station.isPresent()) {
+                return new ResponseEntity<>(List.of(station.get()), HttpStatus.OK);
+            } else {
+                //not found
+                return new ResponseEntity<>(List.of(), HttpStatus.OK);
+            }
+        } else {
+            // no id - get all stations from database
+            return new ResponseEntity<>(stations, HttpStatus.OK);
+        }
+    }
+
 }

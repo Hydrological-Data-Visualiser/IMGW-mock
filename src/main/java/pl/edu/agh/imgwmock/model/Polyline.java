@@ -6,10 +6,10 @@ import lombok.Setter;
 
 import java.util.List;
 
-@AllArgsConstructor
 @Getter
 @Setter
-public class Polygon implements Station {
+@AllArgsConstructor
+public class Polyline implements Station {
     private Long id;
     private String name;
     private List<Double[]> points;

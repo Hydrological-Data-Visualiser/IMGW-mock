@@ -4,8 +4,8 @@ import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
-import pl.edu.agh.imgwmock.model.Polygon;
-import pl.edu.agh.imgwmock.model.Station;
+import pl.edu.agh.imgwmock.model.Point;
+import pl.edu.agh.imgwmock.model.PolygonDataOld;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -19,18 +19,16 @@ import java.util.stream.Collectors;
 
 public class CSVUtils {
 
-    public static List<Station> getStationListFromCSV(String pathToFile) {
-        List<Station> stations = new ArrayList<>();
+    public static List<Point> getStationListFromCSV(String pathToFile) {
+        List<Point> stations = new ArrayList<>();
         try (CSVReader reader = new CSVReader(new FileReader(pathToFile))) {
             List<String[]> csvRecords = reader.readAll();
 
             csvRecords.forEach(record -> {
-                stations.add(new Station(
+                stations.add(new Point(
                         Long.parseLong(record[0]),
                         record[1],
-                        Integer.parseInt(record[2]),
-                        Double.parseDouble(record[3]),
-                        Double.parseDouble(record[4])
+                        new Double[]{Double.parseDouble(record[3]), Double.parseDouble(record[4])}
                 ));
             });
             return stations;
@@ -40,7 +38,7 @@ public class CSVUtils {
         }
     }
 
-    public static List<Polygon> getPolygons(String pathToFile, Optional<String> instant) {
+    public static List<PolygonDataOld> getPolygons(String pathToFile, Optional<String> instant) {
         Gson gson = new GsonBuilder().registerTypeAdapter(Instant.class, new JsonDeserializer<Instant>() {
             @Override
             public Instant deserialize(JsonElement json, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
@@ -48,12 +46,12 @@ public class CSVUtils {
                 return instant;
             }
         }).create();
-        Polygon[] data = {};
+        PolygonDataOld[] data = {};
         try (JsonReader reader = new JsonReader(new FileReader(pathToFile))) {
-            data = gson.fromJson(reader, Polygon[].class);
+            data = gson.fromJson(reader, PolygonDataOld[].class);
             return Arrays.asList(data)
                     .stream()
-                    .map(polygon -> new Polygon(polygon.getId(), polygon.getPoints(), polygon.getValue(), Instant.parse(instant.orElse("2021-10-10T10:10:10Z"))))
+                    .map(polygon -> new PolygonDataOld(polygon.getId(), polygon.getPoints(), polygon.getValue(), Instant.parse(instant.orElse("2021-10-10T10:10:10Z"))))
                     .collect(Collectors.toList());
         } catch (IOException e) {
             e.printStackTrace();
@@ -62,7 +60,7 @@ public class CSVUtils {
     }
 
 
-    public static List<Polygon> getNewPolygons(String pathToFile) {
+    public static List<PolygonDataOld> getNewPolygons(String pathToFile) {
         Gson gson = new GsonBuilder().registerTypeAdapter(Instant.class, new JsonDeserializer<Instant>() {
             @Override
             public Instant deserialize(JsonElement json, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
@@ -70,12 +68,12 @@ public class CSVUtils {
                 return instant;
             }
         }).create();
-        Polygon[] data = {};
+        PolygonDataOld[] data = {};
         try (JsonReader reader = new JsonReader(new FileReader(pathToFile))) {
-            data = gson.fromJson(reader, Polygon[].class);
+            data = gson.fromJson(reader, PolygonDataOld[].class);
             return Arrays.asList(data)
                     .stream()
-                    .map(polygon -> new Polygon(polygon.getId(), polygon.getPoints(), polygon.getValue(), polygon.getDate()))
+                    .map(polygon -> new PolygonDataOld(polygon.getId(), polygon.getPoints(), polygon.getValue(), polygon.getDate()))
                     .collect(Collectors.toList());
         } catch (IOException e) {
             e.printStackTrace();
