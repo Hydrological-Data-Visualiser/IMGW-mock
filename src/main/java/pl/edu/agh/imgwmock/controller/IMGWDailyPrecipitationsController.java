@@ -52,7 +52,7 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
 
         Optional<Instant> dateFromOpt = Optional.empty();
         Optional<Instant> dateToOpt = Optional.empty();
-        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
+        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull();
 
         if (dateString.isPresent()) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -85,7 +85,7 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
     }
 
     private Stream<DailyPrecipitation> precipitationBetween(String instantFrom, int length) {
-        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv")
+        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull()
                 .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
         Instant dateFromInst = Instant.parse(instantFrom).minusSeconds(900);
         Instant dateToInst = DailyPrecipitationUtils.getInstantAfterDistinct(dailyPrecipitations, dateFromInst, length);
@@ -125,7 +125,7 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
     }
 
     private List<LocalDate> getAvailableDates() {
-        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv")
+        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull()
                 .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
         return dailyPrecipitations.stream().map(a -> LocalDate.ofInstant(a.getDate(), ZoneId.systemDefault())).distinct().collect(Collectors.toList());
     }
@@ -138,7 +138,7 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
             @RequestParam(value = "step") int step,
             HttpServletRequest request) {
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv")
+        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull()
                 .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
         List<Instant> timePointsAfter = dailyPrecipitations.stream().map(DailyPrecipitation::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().collect(Collectors.toList());
 
@@ -159,7 +159,7 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
         Instant instantFrom = LocalDate.parse(dateString, formatter).atTime(0, 0, 0).minusSeconds(1).toInstant(ZoneOffset.UTC);
         Instant instantTo = LocalDate.parse(dateString, formatter).atTime(23, 59, 59).toInstant(ZoneOffset.UTC);
 
-        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv")
+        List<DailyPrecipitation> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull()
                 .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
 
         List<Instant> baseDayTimePoints = dailyPrecipitations.stream().map(DailyPrecipitation::getDate).filter(date -> !date.isBefore(instantFrom) && !date.isAfter(instantTo)).sorted().distinct().collect(Collectors.toList());

@@ -34,7 +34,7 @@ public class IMGWStationsController {
             HttpServletRequest request
     ) {
         logger.info("Getting station data: stationId = " + id.toString());
-        List<Station> stations = ImgwUtils.getIMGWStationListFromCSV("src/main/resources/wykaz_stacji.csv");
+        List<Station> stations = ImgwUtils.getStationsWhereAllDataAreNotNull();
         if (id.isPresent()) {
             Optional<Station> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
             if (station.isPresent()) {
