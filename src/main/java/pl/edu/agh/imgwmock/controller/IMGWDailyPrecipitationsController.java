@@ -18,7 +18,6 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.stream.Collectors;
@@ -62,8 +61,8 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
         }
 
         if (dateFrom.isPresent() && dateTo.isPresent()) {
-            dateFromOpt = Optional.of(Instant.parse(dateFrom.get()));
-            dateToOpt = Optional.of(Instant.parse(dateTo.get()));
+            dateFromOpt = Optional.of(Instant.parse(dateFrom.get()).minusSeconds(900));
+            dateToOpt = Optional.of(Instant.parse(dateTo.get()).plusSeconds(900));
         }
 
         if (instant.isPresent()) {
@@ -71,29 +70,18 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
             dateToOpt = Optional.of(Instant.parse(instant.get()).plusSeconds(900));
         }
 
-        List<DailyPrecipitation> result;
-        if (stationId.isPresent() && dateToOpt.isPresent() && dateFromOpt.isPresent()) {
-            Optional<Instant> finalDateToOpt = dateToOpt;
-            Optional<Instant> finalDateFromOpt = dateFromOpt;
-            result = dailyPrecipitations.stream().filter(rain ->
-                    Objects.equals(rain.getStationId(), stationId.get()) &&
-                            rain.getDate().isBefore(finalDateToOpt.get()) &&
-                            rain.getDate().isAfter(finalDateFromOpt.get())).collect(Collectors.toList());
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        } else if (stationId.isPresent()) {
-            result = dailyPrecipitations.stream().filter(rain -> Objects.equals(rain.getStationId(), stationId.get())).collect(Collectors.toList());
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        } else if (dateToOpt.isPresent() && dateFromOpt.isPresent()) {
-            Optional<Instant> finalDateToOpt = dateToOpt;
-            Optional<Instant> finalDateFromOpt = dateFromOpt;
-            result = dailyPrecipitations.stream().filter(rain ->
-                    rain.getDate().isAfter(finalDateFromOpt.get()) &&
-                            rain.getDate().isBefore(finalDateToOpt.get())
-            ).collect(Collectors.toList());
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(dailyPrecipitations, HttpStatus.OK);
+        if (stationId.isPresent()) {
+            dailyPrecipitations = dailyPrecipitations.stream().filter(precipitation -> precipitation.getStationId().equals(stationId.get())).collect(Collectors.toList());
         }
+        if (dateFromOpt.isPresent()) {
+            Optional<Instant> finalDateFromOpt1 = dateFromOpt;
+            dailyPrecipitations = dailyPrecipitations.stream().filter(precipitation -> precipitation.getDate().isAfter(finalDateFromOpt1.get())).collect(Collectors.toList());
+        }
+        if (dateToOpt.isPresent()) {
+            Optional<Instant> finalDateToOpt1 = dateToOpt;
+            dailyPrecipitations = dailyPrecipitations.stream().filter(precipitation -> precipitation.getDate().isBefore(finalDateToOpt1.get())).collect(Collectors.toList());
+        }
+        return new ResponseEntity<>(dailyPrecipitations, HttpStatus.OK);
     }
 
     private Stream<DailyPrecipitation> precipitationBetween(String instantFrom, int length) {
@@ -155,7 +143,7 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
         List<Instant> timePointsAfter = dailyPrecipitations.stream().map(DailyPrecipitation::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().collect(Collectors.toList());
 
         Instant instant;
-        if(timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
+        if (timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
         else instant = timePointsAfter.get(step);
 
         return new ResponseEntity<>(instant, HttpStatus.OK);
@@ -166,7 +154,7 @@ public class IMGWDailyPrecipitationsController implements DataController<DailyPr
     @Override
     public ResponseEntity<List<Instant>> getDayTimePoints(
             @RequestParam(value = "date") String dateString,
-            HttpServletRequest request){
+            HttpServletRequest request) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         Instant instantFrom = LocalDate.parse(dateString, formatter).atTime(0, 0, 0).minusSeconds(1).toInstant(ZoneOffset.UTC);
         Instant instantTo = LocalDate.parse(dateString, formatter).atTime(23, 59, 59).toInstant(ZoneOffset.UTC);
