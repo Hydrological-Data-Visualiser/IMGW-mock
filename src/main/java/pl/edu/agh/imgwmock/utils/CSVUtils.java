@@ -25,10 +25,14 @@ public class CSVUtils {
             List<String[]> csvRecords = reader.readAll();
 
             csvRecords.forEach(record -> {
+                Double[] arr = new Double[]{Double.parseDouble(record[3]), Double.parseDouble(record[4])};
+                List<Double[]> list = new ArrayList<>() {{
+                    add(arr);
+                }};
                 stations.add(new Point(
                         Long.parseLong(record[0]),
                         record[1],
-                        new Double[]{Double.parseDouble(record[3]), Double.parseDouble(record[4])}
+                        list
                 ));
             });
             return stations;

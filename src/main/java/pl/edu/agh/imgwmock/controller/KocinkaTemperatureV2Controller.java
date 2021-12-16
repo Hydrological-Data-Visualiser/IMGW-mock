@@ -104,7 +104,7 @@ public class KocinkaTemperatureV2Controller implements DataController<PolylineDa
         AtomicReference<Point> closestStation = new AtomicReference<>();
 
         kocinkaStations.forEach(station -> {
-            Double distanceSquare = Math.abs(station.getPoint()[0]) - point.getPoints().get(0)[0] + Math.abs(station.getPoint()[1] - point.getPoints().get(0)[1]);
+            Double distanceSquare = Math.abs(station.getPoints().get(0)[0]) - point.getPoints().get(0)[0] + Math.abs(station.getPoints().get(0)[1] - point.getPoints().get(0)[1]);
             if (distanceSquare < smallestDistance.get()) {
                 smallestDistance.set(distanceSquare);
                 closestStation.set(station);

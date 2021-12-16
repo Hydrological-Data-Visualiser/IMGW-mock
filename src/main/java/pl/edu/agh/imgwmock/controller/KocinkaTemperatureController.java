@@ -22,10 +22,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -107,7 +104,7 @@ public class KocinkaTemperatureController implements DataController<PolylineData
         AtomicReference<Point> closestStation = new AtomicReference<>();
 
         kocinkaStations.forEach(station -> {
-            Double distanceSquare = Math.abs(station.getPoint()[0]) - point.getPoints().get(0)[0] + Math.abs(station.getPoint()[1] - point.getPoints().get(0)[1]);
+            Double distanceSquare = Math.abs(station.getPoints().get(0)[0]) - point.getPoints().get(0)[0] + Math.abs(station.getPoints().get(0)[1] - point.getPoints().get(0)[1]);
             if (distanceSquare < smallestDistance.get()) {
                 smallestDistance.set(distanceSquare);
                 closestStation.set(station);
