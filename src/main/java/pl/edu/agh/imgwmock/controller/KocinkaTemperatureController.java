@@ -86,13 +86,22 @@ public class KocinkaTemperatureController implements DataController<PolylineData
         for (Station point : kocinkaLines) {
             val closestStation = findClosestStation(point);
             val dataFromStation = kocinkaTemperatureData.stream()
-                    .filter(a -> a.getStationId().equals(closestStation.getId())).collect(Collectors.toList()).get(0);
-            result.add(new PolylineDataNew(
-                    lastId,
-                    point.getId(),
-                    dataFromStation.getValue(),
-                    dataFromStation.getDate()
-            ));
+                    .filter(a -> a.getStationId().equals(closestStation.getId())).collect(Collectors.toList());
+            if (dataFromStation.size() > 0) {
+                result.add(new PolylineDataNew(
+                        lastId,
+                        point.getId(),
+                        dataFromStation.get(0).getValue(),
+                        dataFromStation.get(0).getDate()
+                ));
+            } else {
+                result.add(new PolylineDataNew(
+                        lastId,
+                        point.getId(),
+                        null,
+                        null
+                ));
+            }
             lastId += 1;
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
@@ -104,7 +113,7 @@ public class KocinkaTemperatureController implements DataController<PolylineData
         AtomicReference<Station> closestStation = new AtomicReference<>();
 
         kocinkaStations.forEach(station -> {
-            Double distanceSquare = Math.abs(station.getPoints().get(0)[0]) - point.getPoints().get(0)[0] + Math.abs(station.getPoints().get(0)[1] - point.getPoints().get(0)[1]);
+            Double distanceSquare = Math.abs(station.getPoints().get(0)[0] - point.getPoints().get(0)[0]) + Math.abs(station.getPoints().get(0)[1] - point.getPoints().get(0)[1]);
             if (distanceSquare < smallestDistance.get()) {
                 smallestDistance.set(distanceSquare);
                 closestStation.set(station);
