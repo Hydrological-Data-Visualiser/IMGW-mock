@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import pl.edu.agh.imgwmock.model.Info;
 import pl.edu.agh.imgwmock.model.PolygonDataOld;
+import pl.edu.agh.imgwmock.model.Station;
 import pl.edu.agh.imgwmock.utils.ModflowDataConverter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -55,6 +56,11 @@ public class ModflowDataController implements DataController<PolygonDataOld> {
             @RequestParam(value = "date") String dateString,
             HttpServletRequest request){
         return new ResponseEntity<>(List.of(converter.getData().get(0).getDate()), HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<List<Station>> getAllStations(Optional<Long> id, HttpServletRequest request) {
+        return null;
     }
 
     @CrossOrigin
