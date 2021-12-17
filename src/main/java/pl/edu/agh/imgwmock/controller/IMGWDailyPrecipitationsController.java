@@ -5,10 +5,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.edu.agh.imgwmock.model.Point;
 import pl.edu.agh.imgwmock.model.PointData;
 import pl.edu.agh.imgwmock.model.DataType;
 import pl.edu.agh.imgwmock.model.Info;
+import pl.edu.agh.imgwmock.model.Station;
 import pl.edu.agh.imgwmock.utils.DailyPrecipitationUtils;
 import pl.edu.agh.imgwmock.utils.ImgwUtils;
 
@@ -171,14 +171,14 @@ public class IMGWDailyPrecipitationsController implements DataController<PointDa
 
     @CrossOrigin
     @GetMapping("/stations")
-    public ResponseEntity<List<Point>> getAllStations(
+    public ResponseEntity<List<Station>> getAllStations(
             @RequestParam(value = "id", required = false) Optional<Long> id,
             HttpServletRequest request
     ) {
         logger.info("Getting station data: stationId = " + id.toString());
-        List<Point> stations = ImgwUtils.getStationsWhereAllDataAreNotNull();
+        List<Station> stations = ImgwUtils.getStationsWhereAllDataAreNotNull();
         if (id.isPresent()) {
-            Optional<Point> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
+            Optional<Station> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
             if (station.isPresent()) {
                 return new ResponseEntity<>(List.of(station.get()), HttpStatus.OK);
             } else {

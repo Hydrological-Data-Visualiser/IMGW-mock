@@ -105,13 +105,13 @@ public class KocinkaController implements DataController<PolylineDataNew> {
 
     @CrossOrigin
     @GetMapping("/stations")
-    public ResponseEntity<List<Polyline>> getAllStations(
+    public ResponseEntity<List<Station>> getAllStations(
             @RequestParam(value = "id", required = false) Optional<Long> id,
             HttpServletRequest request
     ) {
-        List<Polyline> stations = NewKocinkaUtils.getKocinkaStations();
+        List<Station> stations = NewKocinkaUtils.getKocinkaStations();
         if (id.isPresent()) {
-            Optional<Polyline> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
+            Optional<Station> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
             if (station.isPresent()) {
                 return new ResponseEntity<>(List.of(station.get()), HttpStatus.OK);
             } else {
@@ -123,5 +123,4 @@ public class KocinkaController implements DataController<PolylineDataNew> {
             return new ResponseEntity<>(stations, HttpStatus.OK);
         }
     }
-
 }

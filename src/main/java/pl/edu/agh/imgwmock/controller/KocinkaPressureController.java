@@ -40,11 +40,11 @@ public class KocinkaPressureController implements DataController<PointData> {
 
     @CrossOrigin
     @GetMapping("/stations")
-    public ResponseEntity<List<Point>> getKocinkaStations(
-            @RequestParam(value = "date", required = false) Optional<String> dateString,
+    public ResponseEntity<List<Station>> getAllStations(
+            @RequestParam(value = "id", required = false) Optional<Long> id,
             HttpServletRequest request) {
         logger.info("Getting Kocinka Stations");
-        List<Point> kocinkaStations = CSVUtils.getStationListFromCSV("src/main/resources/kocinka/kocinka_stations.csv");
+        List<Station> kocinkaStations = CSVUtils.getStationListFromCSV("src/main/resources/kocinka/kocinka_stations.csv");
         return new ResponseEntity<>(kocinkaStations, HttpStatus.OK);
     }
 
@@ -81,14 +81,18 @@ public class KocinkaPressureController implements DataController<PointData> {
         }
 
 
-        if (dateFromOpt.isPresent() && dateToOpt.isPresent()) {
-            Optional<Instant> finalDateToOpt = dateToOpt;
-            Optional<Instant> finalDateFromOpt = dateFromOpt;
+        if (stationId.isPresent()) {
+            kocinka = kocinka.stream().filter(a -> a.getStationId().equals(stationId.get())).collect(Collectors.toList());
+        }
 
-            kocinka = kocinka.stream().filter(pressure ->
-                    pressure.getDate().isBefore(finalDateToOpt.get()) &&
-                            pressure.getDate().isAfter(finalDateFromOpt.get())
-            ).collect(Collectors.toList());
+        if (dateFromOpt.isPresent()) {
+            Optional<Instant> finalDateFromOpt = dateFromOpt;
+            kocinka = kocinka.stream().filter(a -> a.getDate().isAfter(finalDateFromOpt.get())).collect(Collectors.toList());
+        }
+
+        if (dateToOpt.isPresent()) {
+            Optional<Instant> finalDateToOpt = dateToOpt;
+            kocinka = kocinka.stream().filter(a -> a.getDate().isAfter(finalDateToOpt.get())).collect(Collectors.toList());
         }
 
         return new ResponseEntity<>(kocinka, HttpStatus.OK);

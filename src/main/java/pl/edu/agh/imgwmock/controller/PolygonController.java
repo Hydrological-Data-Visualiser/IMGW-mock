@@ -86,17 +86,17 @@ public class PolygonController implements DataController<PolygonDataNew> {
                 });
     }
 
-    private List<Instant> getAggregatedTimePoints(List<PolygonDataOld> list, Instant instantFrom, Instant instantTo){
+    private List<Instant> getAggregatedTimePoints(List<PolygonDataOld> list, Instant instantFrom, Instant instantTo) {
         List<Instant> dayTimePoints = list.stream().map(PolygonDataOld::getDate).filter(date -> !date.isBefore(instantFrom) && !date.isAfter(instantTo)).sorted().distinct().collect(Collectors.toList());
 
         ArrayList<Instant> hours = new ArrayList<Instant>();
-        for(Instant i : dayTimePoints){
+        for (Instant i : dayTimePoints) {
             if (!hours.contains(i)) {
                 boolean canAdd = true;
-                for(Instant j : hours) {
+                for (Instant j : hours) {
                     if (j.minusSeconds(60 * 15).isBefore(i) && j.plusSeconds(60 * 15).isAfter(i)) canAdd = false;
                 }
-                if(canAdd) hours.add(i);
+                if (canAdd) hours.add(i);
             }
         }
 
@@ -113,8 +113,8 @@ public class PolygonController implements DataController<PolygonDataNew> {
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         List<Instant> aggregated = getAggregatedTimePoints(kocinka, dateFromInst, Instant.MAX);
         Instant dateToInst;
-        if(aggregated.size() >= length) dateToInst = aggregated.get(length - 1);
-        else dateToInst = aggregated.get(aggregated.size()-1);
+        if (aggregated.size() >= length) dateToInst = aggregated.get(length - 1);
+        else dateToInst = aggregated.get(aggregated.size() - 1);
         dateToInst = dateToInst.plusSeconds(900);
         dateFromInst = dateFromInst.minusSeconds(900);
 
@@ -135,8 +135,8 @@ public class PolygonController implements DataController<PolygonDataNew> {
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         List<Instant> aggregated = getAggregatedTimePoints(kocinka, dateFromInst, Instant.MAX);
         Instant dateToInst;
-        if(aggregated.size() >= length) dateToInst = aggregated.get(length - 1);
-        else dateToInst = aggregated.get(aggregated.size()-1);
+        if (aggregated.size() >= length) dateToInst = aggregated.get(length - 1);
+        else dateToInst = aggregated.get(aggregated.size() - 1);
         dateToInst = dateToInst.plusSeconds(900);
         dateFromInst = dateFromInst.minusSeconds(900);
 
@@ -162,7 +162,7 @@ public class PolygonController implements DataController<PolygonDataNew> {
         List<Instant> timePointsAfter = getAggregatedTimePoints(kocinka, dateFromInst, Instant.MAX);
 
         Instant instant;
-        if(timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
+        if (timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
         else instant = timePointsAfter.get(step);
 
         return new ResponseEntity<>(instant, HttpStatus.OK);
@@ -188,13 +188,13 @@ public class PolygonController implements DataController<PolygonDataNew> {
 
     @CrossOrigin
     @GetMapping("/stations")
-    public ResponseEntity<List<Polygon>> getAllStations(
+    public ResponseEntity<List<Station>> getAllStations(
             @RequestParam(value = "id", required = false) Optional<Long> id,
             HttpServletRequest request
     ) {
-        List<Polygon> stations = PolygonsUtils.getPolygonsStations();
+        List<Station> stations = PolygonsUtils.getPolygonsStations();
         if (id.isPresent()) {
-            Optional<Polygon> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
+            Optional<Station> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
             if (station.isPresent()) {
                 return new ResponseEntity<>(List.of(station.get()), HttpStatus.OK);
             } else {

@@ -2,8 +2,8 @@ package pl.edu.agh.imgwmock.utils;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
-import pl.edu.agh.imgwmock.model.Point;
 import pl.edu.agh.imgwmock.model.PointData;
+import pl.edu.agh.imgwmock.model.Station;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -37,8 +37,8 @@ public class ImgwUtils {
         }
     }
 
-    public static List<Point> getIMGWStationListFromCSV(String pathToFile) {
-        List<Point> stations = new ArrayList<>();
+    public static List<Station> getIMGWStationListFromCSV(String pathToFile) {
+        List<Station> stations = new ArrayList<>();
         try (CSVReader reader = new CSVReader(new FileReader(pathToFile))) {
             List<String[]> csvRecords = reader.readAll();
 
@@ -47,7 +47,7 @@ public class ImgwUtils {
                 List<Double[]> list = new ArrayList<>() {{
                     add(arr);
                 }};
-                stations.add(new Point(
+                stations.add(new Station(
                         Long.parseLong(record[0]),
                         record[1],
                         list
@@ -60,8 +60,8 @@ public class ImgwUtils {
         }
     }
 
-    public static List<Point> getStationsWhereAllDataAreNotNull() {
-        List<Point> stations = getIMGWStationListFromCSV("src/main/resources/wykaz_stacji.csv");
+    public static List<Station> getStationsWhereAllDataAreNotNull() {
+        List<Station> stations = getIMGWStationListFromCSV("src/main/resources/wykaz_stacji.csv");
         List<PointData> dailyPrecipitations = getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
         dailyPrecipitations = new ArrayList<>(dailyPrecipitations);
         stations = new ArrayList<>(stations);
@@ -78,10 +78,10 @@ public class ImgwUtils {
                 }});
             }
         }
-        List<Point> stationsFromId = new ArrayList<>();
+        List<Station> stationsFromId = new ArrayList<>();
         for (Map.Entry<Long, ArrayList<PointData>> entry : stationsMap.entrySet()) {
             if (entry.getValue().stream().anyMatch(n -> n.getValue() != null)) {
-                Optional<Point> station = stations.stream().filter(d -> d.getId().equals(entry.getKey())).findFirst();
+                Optional<Station> station = stations.stream().filter(d -> d.getId().equals(entry.getKey())).findFirst();
                 station.ifPresent(stationsFromId::add);
             }
         }
@@ -90,9 +90,9 @@ public class ImgwUtils {
 
 
     public static List<PointData> getDailyPrecipitationsFromStationsWhereAllDataAreNotNull() {
-        List<Point> stations = getStationsWhereAllDataAreNotNull();
+        List<Station> stations = getStationsWhereAllDataAreNotNull();
         List<PointData> dailyPrecipitations = getImgwDailyPrecipitationListFromCSV("src/main/resources/o_d_08_2021.csv");
-        List<Long> stationsId = stations.stream().map(Point::getId).collect(Collectors.toList());
+        List<Long> stationsId = stations.stream().map(Station::getId).collect(Collectors.toList());
         dailyPrecipitations = dailyPrecipitations.stream().filter(rain -> stationsId.contains(rain.getStationId())).collect(Collectors.toList());
         return dailyPrecipitations;
     }

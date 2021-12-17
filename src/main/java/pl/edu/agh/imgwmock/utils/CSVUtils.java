@@ -4,8 +4,8 @@ import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
-import pl.edu.agh.imgwmock.model.Point;
 import pl.edu.agh.imgwmock.model.PolygonDataOld;
+import pl.edu.agh.imgwmock.model.Station;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -19,8 +19,8 @@ import java.util.stream.Collectors;
 
 public class CSVUtils {
 
-    public static List<Point> getStationListFromCSV(String pathToFile) {
-        List<Point> stations = new ArrayList<>();
+    public static List<Station> getStationListFromCSV(String pathToFile) {
+        List<Station> stations = new ArrayList<>();
         try (CSVReader reader = new CSVReader(new FileReader(pathToFile))) {
             List<String[]> csvRecords = reader.readAll();
 
@@ -29,7 +29,7 @@ public class CSVUtils {
                 List<Double[]> list = new ArrayList<>() {{
                     add(arr);
                 }};
-                stations.add(new Point(
+                stations.add(new Station(
                         Long.parseLong(record[0]),
                         record[1],
                         list

@@ -3,7 +3,7 @@ package pl.edu.agh.imgwmock.utils;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 import pl.edu.agh.imgwmock.model.PolylineDataNew;
-import pl.edu.agh.imgwmock.model.Polyline;
+import pl.edu.agh.imgwmock.model.Station;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -16,8 +16,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class NewKocinkaUtils {
 
-    public static List<Polyline> getKocinkaStations() {
-        List<Polyline> kocinka = new ArrayList<>();
+    public static List<Station> getKocinkaStations() {
+        List<Station> kocinka = new ArrayList<>();
         try (CSVReader reader = new CSVReader(new FileReader("src/main/resources/kocinka.csv"))) {
             List<String[]> csvRecords = reader.readAll();
             AtomicReference<Long> lastId = new AtomicReference<>(0L);
@@ -29,7 +29,7 @@ public class NewKocinkaUtils {
                 secondPoint[0] = Double.parseDouble(csvRecords.get(i + 1)[1]);
                 secondPoint[1] = Double.parseDouble(csvRecords.get(i + 1)[0]);
 
-                kocinka.add(new Polyline(
+                kocinka.add(new Station(
                         lastId.getAndSet(lastId.get() + 1),
                         "",
                         List.of(firstPoint, secondPoint)
@@ -43,11 +43,11 @@ public class NewKocinkaUtils {
     }
 
     public static List<PolylineDataNew> getNewKocinkaRandomData(Optional<String> instant) {
-        List<Polyline> stations = getKocinkaStations();
+        List<Station> stations = getKocinkaStations();
         List<PolylineDataNew> result = new ArrayList<>();
         Random random = new Random();
         Long lastId = 0L;
-        for (Polyline station : stations) {
+        for (Station station : stations) {
             result.add(new PolylineDataNew(
                     lastId,
                     station.getId(),

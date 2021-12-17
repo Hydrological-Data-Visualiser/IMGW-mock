@@ -31,7 +31,7 @@ public interface DataController<T> {
             @RequestParam(value = "instantFrom") String instantFrom,
             @RequestParam(value = "length") int length,
             HttpServletRequest request);
-    
+
     ResponseEntity<Instant> getTimePointAfter(
             @RequestParam(value = "instantFrom") String instantFrom,
             @RequestParam(value = "step") int step,
@@ -39,6 +39,11 @@ public interface DataController<T> {
 
     ResponseEntity<List<Instant>> getDayTimePoints(
             @RequestParam(value = "date") String dateString,
+            HttpServletRequest request
+    );
+
+    ResponseEntity<List<Station>> getAllStations(
+            @RequestParam(value = "id", required = false) Optional<Long> id,
             HttpServletRequest request
     );
 }

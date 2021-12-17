@@ -83,7 +83,7 @@ public class KocinkaTemperatureController implements DataController<PolylineData
         List<PolylineDataNew> result = new ArrayList<>();
         val kocinkaLines = NewKocinkaUtils.getKocinkaStations();
         Long lastId = 0L;
-        for (Polyline point : kocinkaLines) {
+        for (Station point : kocinkaLines) {
             val closestStation = findClosestStation(point);
             val dataFromStation = kocinkaTemperatureData.stream()
                     .filter(a -> a.getStationId().equals(closestStation.getId())).collect(Collectors.toList()).get(0);
@@ -98,10 +98,10 @@ public class KocinkaTemperatureController implements DataController<PolylineData
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    private Point findClosestStation(Polyline point) {
-        List<Point> kocinkaStations = CSVUtils.getStationListFromCSV("src/main/resources/kocinka/kocinka_stations.csv");
+    private Station findClosestStation(Station point) {
+        List<Station> kocinkaStations = CSVUtils.getStationListFromCSV("src/main/resources/kocinka/kocinka_stations.csv");
         AtomicReference<Double> smallestDistance = new AtomicReference<>(Double.MAX_VALUE);
-        AtomicReference<Point> closestStation = new AtomicReference<>();
+        AtomicReference<Station> closestStation = new AtomicReference<>();
 
         kocinkaStations.forEach(station -> {
             Double distanceSquare = Math.abs(station.getPoints().get(0)[0]) - point.getPoints().get(0)[0] + Math.abs(station.getPoints().get(0)[1] - point.getPoints().get(0)[1]);
@@ -234,13 +234,13 @@ public class KocinkaTemperatureController implements DataController<PolylineData
 
     @CrossOrigin
     @GetMapping("/stations")
-    public ResponseEntity<List<Polyline>> getAllStations(
+    public ResponseEntity<List<Station>> getAllStations(
             @RequestParam(value = "id", required = false) Optional<Long> id,
             HttpServletRequest request
     ) {
-        List<Polyline> stations = NewKocinkaUtils.getKocinkaStations();
+        List<Station> stations = NewKocinkaUtils.getKocinkaStations();
         if (id.isPresent()) {
-            Optional<Polyline> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
+            Optional<Station> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
             if (station.isPresent()) {
                 return new ResponseEntity<>(List.of(station.get()), HttpStatus.OK);
             } else {

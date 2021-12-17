@@ -4,7 +4,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 import pl.edu.agh.imgwmock.model.PointData;
 import pl.edu.agh.imgwmock.model.PolylineDataOld;
-import pl.edu.agh.imgwmock.model.Point;
+import pl.edu.agh.imgwmock.model.Station;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -41,9 +41,9 @@ public class KocinkaUtils {
     public static List<PointData> getKocinkaTemperatureData() {
         List<PointData> temperature = new ArrayList<>();
         try {
-            List<Point> stations = CSVUtils.getStationListFromCSV("src/main/resources/kocinka/kocinka_stations.csv");
+            List<Station> stations = CSVUtils.getStationListFromCSV("src/main/resources/kocinka/kocinka_stations.csv");
             AtomicReference<Long> lastId = new AtomicReference<>(0L);
-            for (Point station : stations) {
+            for (Station station : stations) {
                 String name = station.getName().toLowerCase().replace(" ", "_");
                 CSVReader reader = new CSVReader(new FileReader("src/main/resources/kocinka/" + name + ".csv"));
                 List<String[]> csvRecords = reader.readAll();
@@ -70,9 +70,9 @@ public class KocinkaUtils {
     public static List<PointData> getKocinkaPressureData() {
         List<PointData> temperature = new ArrayList<>();
         try {
-            List<Point> stations = CSVUtils.getStationListFromCSV("src/main/resources/kocinka/kocinka_stations.csv");
+            List<Station> stations = CSVUtils.getStationListFromCSV("src/main/resources/kocinka/kocinka_stations.csv");
             AtomicReference<Long> lastId = new AtomicReference<>(0L);
-            for (Point station : stations) {
+            for (Station station : stations) {
                 String name = station.getName().toLowerCase().replace(" ", "_");
                 CSVReader reader = new CSVReader(new FileReader("src/main/resources/kocinka/" + name + ".csv"));
                 List<String[]> csvRecords = reader.readAll();

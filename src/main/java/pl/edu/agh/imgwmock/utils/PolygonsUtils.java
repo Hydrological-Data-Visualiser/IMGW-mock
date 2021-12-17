@@ -2,8 +2,8 @@ package pl.edu.agh.imgwmock.utils;
 
 import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
-import pl.edu.agh.imgwmock.model.Polygon;
 import pl.edu.agh.imgwmock.model.PolygonDataNew;
+import pl.edu.agh.imgwmock.model.Station;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -35,17 +35,17 @@ public class PolygonsUtils {
         return Arrays.asList(data);
     }
 
-    public static List<Polygon> getPolygonsStations() {
+    public static List<Station> getPolygonsStations() {
         String pathToFile = "src/main/resources/polygonsStation.json";
         Gson gson = new Gson();
-        List<Polygon> list = new ArrayList<>();
+        List<Station> list = new ArrayList<>();
         try {
-            list = Arrays.asList(gson.fromJson(new FileReader(pathToFile), Polygon[].class));
+            list = Arrays.asList(gson.fromJson(new FileReader(pathToFile), Station[].class));
 
             list = list.stream().map(polygon -> {
                 List<Double[]> points = polygon.getPoints().stream().map(points1 ->
                         new Double[]{points1[1], points1[0]}).collect(Collectors.toList());
-                return new Polygon(polygon.getId(), polygon.getName(), points);
+                return new Station(polygon.getId(), polygon.getName(), points);
             }).collect(Collectors.toList());
 
             return list;
