@@ -92,7 +92,7 @@ public class KocinkaPressureController implements DataController<PointData> {
 
         if (dateToOpt.isPresent()) {
             Optional<Instant> finalDateToOpt = dateToOpt;
-            kocinka = kocinka.stream().filter(a -> a.getDate().isAfter(finalDateToOpt.get())).collect(Collectors.toList());
+            kocinka = kocinka.stream().filter(a -> a.getDate().isBefore(finalDateToOpt.get())).collect(Collectors.toList());
         }
 
         return new ResponseEntity<>(kocinka, HttpStatus.OK);
