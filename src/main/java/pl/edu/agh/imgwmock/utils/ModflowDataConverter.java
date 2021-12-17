@@ -51,7 +51,7 @@ public class ModflowDataConverter {
                 DataType.POLYGON, "[metric]", "#FFF000", "#000FFF", getAvailableDates());
     }
 
-    public List<PolygonDataOld> getData() {
+    public List<PolygonDataNew> getData() {
         return convertDataToPolygons(Double.parseDouble(info.getLat()), Double.parseDouble(info.getLongitude()));
     }
 
@@ -105,20 +105,15 @@ public class ModflowDataConverter {
         return begin + index * METER_TO_DEGREE;
     }
 
-    private List<PolygonDataOld> convertDataToPolygons(Double latitude, Double longitude) {
+    private List<PolygonDataNew> convertDataToPolygons(Double latitude, Double longitude) {
         var layer = data.get(0).get(0);
         Long id = 0L;
-        List<PolygonDataOld> result = new ArrayList<>();
+        List<PolygonDataNew> result = new ArrayList<>();
         for (int i = 0; i < layer.size(); i++) {
             for (int j = 0; j < layer.get(i).size(); j++) {
 //        for (int i = 0; i < 35; i++) {
 //            for (int j = 0; j < 35; j++) {
-                result.add(new PolygonDataOld(id, List.of(
-                        new Double[]{convertMetersToDegree(longitude, i), convertMetersToDegree(latitude, (-1) * j)},
-                        new Double[]{convertMetersToDegree(longitude, i + 1), convertMetersToDegree(latitude, (-1) * j)},
-                        new Double[]{convertMetersToDegree(longitude, i + 1), convertMetersToDegree(latitude, (-1) * (j + 1))},
-                        new Double[]{convertMetersToDegree(longitude, i), convertMetersToDegree(latitude, (-1) * (j + 1))}
-                ), layer.get(i).get(j), Instant.parse(info.getStart_date() + "T00:00:00.00Z")));
+                result.add(new PolygonDataNew(id, id, layer.get(i).get(j), Instant.parse(info.getStart_date() + "T00:00:00.00Z")));
                 id++;
             }
         }
@@ -135,10 +130,10 @@ public class ModflowDataConverter {
         for (int i = 0; i < layer.size(); i++) {
             for (int j = 0; j < layer.get(i).size(); j++) {
                 val list = List.of(
-                        new Double[]{convertMetersToDegree(longitude, i), convertMetersToDegree(latitude, (-1) * j)},
-                        new Double[]{convertMetersToDegree(longitude, i + 1), convertMetersToDegree(latitude, (-1) * j)},
-                        new Double[]{convertMetersToDegree(longitude, i + 1), convertMetersToDegree(latitude, (-1) * (j + 1))},
-                        new Double[]{convertMetersToDegree(longitude, i), convertMetersToDegree(latitude, (-1) * (j + 1))}
+                        new Double[]{convertMetersToDegree(latitude, (-1) * j), convertMetersToDegree(longitude, i)},
+                        new Double[]{convertMetersToDegree(latitude, (-1) * j), convertMetersToDegree(longitude, i + 1)},
+                        new Double[]{convertMetersToDegree(latitude, (-1) * (j + 1)), convertMetersToDegree(longitude, i + 1)},
+                        new Double[]{convertMetersToDegree(latitude, (-1) * (j + 1)), convertMetersToDegree(longitude, i)}
                 );
                 result.add(new Station(id, "", list));
                 id++;
