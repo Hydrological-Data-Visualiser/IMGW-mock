@@ -1,6 +1,7 @@
 package pl.edu.agh.imgwmock.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.val;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -54,13 +55,18 @@ public class ModflowDataController implements DataController<PolygonDataOld> {
     @GetMapping("/dayTimePoints")
     public ResponseEntity getDayTimePoints(
             @RequestParam(value = "date") String dateString,
-            HttpServletRequest request){
+            HttpServletRequest request) {
         return new ResponseEntity<>(List.of(converter.getData().get(0).getDate()), HttpStatus.OK);
     }
 
-    @Override
-    public ResponseEntity<List<Station>> getAllStations(Optional<Long> id, HttpServletRequest request) {
-        return null;
+    @CrossOrigin
+    @GetMapping("/stations")
+    public ResponseEntity<List<Station>> getAllStations(
+            @RequestParam(value = "id", required = false) Optional<Long> id,
+            HttpServletRequest request
+    ) {
+        val list = converter.getStations();
+        return new ResponseEntity<>(list, HttpStatus.OK);
     }
 
     @CrossOrigin

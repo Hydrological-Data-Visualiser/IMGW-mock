@@ -3,13 +3,11 @@ package pl.edu.agh.imgwmock.utils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Setter;
+import lombok.val;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import pl.edu.agh.imgwmock.model.DataType;
-import pl.edu.agh.imgwmock.model.Info;
-import pl.edu.agh.imgwmock.model.ModflowModelInfo;
-import pl.edu.agh.imgwmock.model.PolygonDataOld;
+import pl.edu.agh.imgwmock.model.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,7 +41,7 @@ public class ModflowDataConverter {
         readData();
     }
 
-    public ModflowDataConverter(){
+    public ModflowDataConverter() {
         this.objectMapper = new ObjectMapper();
         readData();
     }
@@ -64,8 +62,8 @@ public class ModflowDataConverter {
     public Double getMaxValue() {
         var layer = data.get(0).get(0);
         Double max = -999.0;
-        for (var row: layer) {
-            for (var val: row) {
+        for (var row : layer) {
+            for (var val : row) {
                 if (max < val) max = val;
             }
         }
@@ -83,12 +81,14 @@ public class ModflowDataConverter {
 
     // xd
     private List<List<List<List<Double>>>> readDataFromJsonFile() {
-        data = readFromJsonFile(new TypeReference<List<List<List<List<Double>>>>>() {}, pathToDataFile);
+        data = readFromJsonFile(new TypeReference<List<List<List<List<Double>>>>>() {
+        }, pathToDataFile);
         return data;
     }
 
     private ModflowModelInfo readInfoFromJsonFile() {
-        info = readFromJsonFile(new TypeReference<ModflowModelInfo>() {}, pathToInfoFile);
+        info = readFromJsonFile(new TypeReference<ModflowModelInfo>() {
+        }, pathToInfoFile);
         return info;
     }
 
@@ -114,11 +114,33 @@ public class ModflowDataConverter {
 //        for (int i = 0; i < 35; i++) {
 //            for (int j = 0; j < 35; j++) {
                 result.add(new PolygonDataOld(id, List.of(
-                        new Double[]{convertMetersToDegree(longitude, i), convertMetersToDegree(latitude, (-1)*j)},
-                        new Double[]{convertMetersToDegree(longitude, i+1), convertMetersToDegree(latitude, (-1)*j)},
-                        new Double[]{convertMetersToDegree(longitude, i+1), convertMetersToDegree(latitude, (-1)*(j+1))},
-                        new Double[]{convertMetersToDegree(longitude, i), convertMetersToDegree(latitude, (-1)*(j+1))}
+                        new Double[]{convertMetersToDegree(longitude, i), convertMetersToDegree(latitude, (-1) * j)},
+                        new Double[]{convertMetersToDegree(longitude, i + 1), convertMetersToDegree(latitude, (-1) * j)},
+                        new Double[]{convertMetersToDegree(longitude, i + 1), convertMetersToDegree(latitude, (-1) * (j + 1))},
+                        new Double[]{convertMetersToDegree(longitude, i), convertMetersToDegree(latitude, (-1) * (j + 1))}
                 ), layer.get(i).get(j), Instant.parse(info.getStart_date() + "T00:00:00.00Z")));
+                id++;
+            }
+        }
+        return result;
+    }
+
+
+    public List<Station> getStations() {
+        val latitude = Double.parseDouble(info.getLat());
+        val longitude = Double.parseDouble(info.getLongitude());
+        var layer = data.get(0).get(0);
+        Long id = 0L;
+        List<Station> result = new ArrayList<>();
+        for (int i = 0; i < layer.size(); i++) {
+            for (int j = 0; j < layer.get(i).size(); j++) {
+                val list = List.of(
+                        new Double[]{convertMetersToDegree(longitude, i), convertMetersToDegree(latitude, (-1) * j)},
+                        new Double[]{convertMetersToDegree(longitude, i + 1), convertMetersToDegree(latitude, (-1) * j)},
+                        new Double[]{convertMetersToDegree(longitude, i + 1), convertMetersToDegree(latitude, (-1) * (j + 1))},
+                        new Double[]{convertMetersToDegree(longitude, i), convertMetersToDegree(latitude, (-1) * (j + 1))}
+                );
+                result.add(new Station(id, "", list));
                 id++;
             }
         }
