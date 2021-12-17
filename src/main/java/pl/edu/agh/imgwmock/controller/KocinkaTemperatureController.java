@@ -78,7 +78,7 @@ public class KocinkaTemperatureController implements DataController<PolylineData
 
         if (dateToOpt.isPresent()) {
             Optional<Instant> finalDateToOpt = dateToOpt;
-            kocinkaTemperatureData = kocinkaTemperatureData.stream().filter(a -> a.getDate().isAfter(finalDateToOpt.get())).collect(Collectors.toList());
+            kocinkaTemperatureData = kocinkaTemperatureData.stream().filter(a -> a.getDate().isBefore(finalDateToOpt.get())).collect(Collectors.toList());
         }
         List<PolylineDataNew> result = new ArrayList<>();
         val kocinkaLines = NewKocinkaUtils.getKocinkaStations();
@@ -127,10 +127,7 @@ public class KocinkaTemperatureController implements DataController<PolylineData
         List<PointData> kocinka = KocinkaUtils.getKocinkaTemperatureData()
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         return kocinka.stream().filter(
-                dailyPrecipitation -> {
-                    Instant date = dailyPrecipitation.getDate();
-                    return !date.isBefore(instantFrom) && !date.isAfter(instantTo);
-                });
+                dailyPrecipitation ->dailyPrecipitation.getDate().isAfter(instantFrom) && dailyPrecipitation.getDate().isBefore(instantTo));
     }
 
     @CrossOrigin
