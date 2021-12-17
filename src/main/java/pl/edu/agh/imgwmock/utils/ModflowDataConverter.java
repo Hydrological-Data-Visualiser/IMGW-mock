@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Setter
@@ -34,6 +35,22 @@ public class ModflowDataConverter {
 
     private ModflowModelInfo info;
 
+    public List<String> possibleDates = List.of(
+            "2017-04-17T00:00:00.00Z",
+            "2017-07-17T00:00:00.00Z",
+            "2017-10-17T00:00:00.00Z",
+            "2018-01-17T00:00:00.00Z",
+            "2018-04-17T00:00:00.00Z",
+            "2018-07-17T00:00:00.00Z",
+            "2018-10-17T00:00:00.00Z",
+            "2019-01-17T00:00:00.00Z",
+            "2019-04-17T00:00:00.00Z",
+            "2019-07-17T00:00:00.00Z",
+            "2019-10-17T00:00:00.00Z",
+            "2020-01-17T00:00:00.00Z",
+            "2020-04-17T00:00:00.00Z"
+    );
+
     public ModflowDataConverter(String pathToDataFile, String pathToInfoFile) {
         this.pathToDataFile = pathToDataFile;
         this.pathToInfoFile = pathToInfoFile;
@@ -52,7 +69,11 @@ public class ModflowDataConverter {
     }
 
     public List<PolygonDataNew> getData() {
-        return convertDataToPolygons(Double.parseDouble(info.getLat()), Double.parseDouble(info.getLongitude()));
+        List result = new ArrayList();
+        for(int stressPeriod = 0; stressPeriod < 13; stressPeriod++) {
+            result.addAll(convertDataToPolygons(stressPeriod, 0));
+        }
+        return result;
     }
 
     public Double getMinValue() {
@@ -76,7 +97,9 @@ public class ModflowDataConverter {
     }
 
     private List<LocalDate> getAvailableDates() {
-        return List.of(LocalDate.parse(info.getStart_date()));
+        return possibleDates.stream()
+                .map(d -> LocalDate.parse(d.substring(0, 10)))
+                .collect(Collectors.toList());
     }
 
     // xd
@@ -105,19 +128,21 @@ public class ModflowDataConverter {
         return begin + index * METER_TO_DEGREE;
     }
 
-    private List<PolygonDataNew> convertDataToPolygons(Double latitude, Double longitude) {
-        var layer = data.get(0).get(0);
+    private List<PolygonDataNew> convertDataToPolygons(int stressPeriod, int layerNumber) {
+        var layer = data.get(stressPeriod).get(layerNumber);
         Long id = 0L;
         List<PolygonDataNew> result = new ArrayList<>();
         for (int i = 0; i < layer.size(); i++) {
             for (int j = 0; j < layer.get(i).size(); j++) {
-//        for (int i = 0; i < 35; i++) {
-//            for (int j = 0; j < 35; j++) {
-                result.add(new PolygonDataNew(id, id, layer.get(i).get(j), Instant.parse(info.getStart_date() + "T00:00:00.00Z")));
+                result.add(new PolygonDataNew(id, id, layer.get(i).get(j), Instant.parse(getDate(stressPeriod))));
                 id++;
             }
         }
         return result;
+    }
+
+    private String getDate(int stressPeriod) {
+        return possibleDates.get(stressPeriod);
     }
 
 

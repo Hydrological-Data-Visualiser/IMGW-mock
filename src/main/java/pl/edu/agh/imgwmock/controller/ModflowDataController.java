@@ -10,15 +10,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import pl.edu.agh.imgwmock.model.Info;
+import pl.edu.agh.imgwmock.model.PointData;
 import pl.edu.agh.imgwmock.model.PolygonDataNew;
 import pl.edu.agh.imgwmock.model.PolygonDataOld;
 import pl.edu.agh.imgwmock.model.Station;
+import pl.edu.agh.imgwmock.utils.ImgwUtils;
 import pl.edu.agh.imgwmock.utils.ModflowDataConverter;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Controller
@@ -79,6 +85,38 @@ public class ModflowDataController implements DataController<PolygonDataNew> {
             @RequestParam(value = "dateTo", required = false) Optional<String> dateTo,
             @RequestParam(value = "dateInstant", required = false) Optional<String> instant,
             HttpServletRequest request) {
-        return new ResponseEntity<>(converter.getData(), HttpStatus.OK);
+
+        Optional<Instant> dateFromOpt = Optional.empty();
+        Optional<Instant> dateToOpt = Optional.empty();
+        List<PolygonDataNew> data = converter.getData();
+
+        if (dateString.isPresent()) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            dateFromOpt = Optional.of(LocalDate.parse(dateString.get(), formatter).atTime(0, 0, 0).minusSeconds(1).toInstant(ZoneOffset.UTC));
+            dateToOpt = Optional.of(LocalDate.parse(dateString.get(), formatter).atTime(23, 59, 59).toInstant(ZoneOffset.UTC));
+        }
+
+        if (dateFrom.isPresent() && dateTo.isPresent()) {
+            dateFromOpt = Optional.of(Instant.parse(dateFrom.get()).minusSeconds(900));
+            dateToOpt = Optional.of(Instant.parse(dateTo.get()).plusSeconds(900));
+        }
+
+        if (instant.isPresent()) {
+            dateFromOpt = Optional.of(Instant.parse(instant.get()).minusSeconds(900));
+            dateToOpt = Optional.of(Instant.parse(instant.get()).plusSeconds(900));
+        }
+
+        if (stationId.isPresent()) {
+            data = data.stream().filter(precipitation -> precipitation.getPolygonId().equals(stationId.get())).collect(Collectors.toList());
+        }
+        if (dateFromOpt.isPresent()) {
+            Optional<Instant> finalDateFromOpt1 = dateFromOpt;
+            data = data.stream().filter(precipitation -> precipitation.getDate().isAfter(finalDateFromOpt1.get())).collect(Collectors.toList());
+        }
+        if (dateToOpt.isPresent()) {
+            Optional<Instant> finalDateToOpt1 = dateToOpt;
+            data = data.stream().filter(precipitation -> precipitation.getDate().isBefore(finalDateToOpt1.get())).collect(Collectors.toList());
+        }
+        return new ResponseEntity<>(data, HttpStatus.OK);
     }
 }
