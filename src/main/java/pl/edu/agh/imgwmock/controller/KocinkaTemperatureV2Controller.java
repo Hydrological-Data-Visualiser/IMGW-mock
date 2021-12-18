@@ -10,31 +10,30 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import pl.edu.agh.imgwmock.model.DataType;
 import pl.edu.agh.imgwmock.model.Info;
+import pl.edu.agh.imgwmock.model.PointData;
 import pl.edu.agh.imgwmock.model.PolylineDataNew;
+import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
-import java.time.Month;
-import java.util.ArrayList;
+import java.time.ZoneId;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
-@RequestMapping("/kocinkaV2")
-public class KocinkaV2Controller extends KocinkaController implements DataController<PolylineDataNew> {
-    Logger logger = LoggerFactory.getLogger(KocinkaV2Controller.class);
+@RequestMapping("/kocinkaTemperatureV2")
+public class KocinkaTemperatureV2Controller extends KocinkaTemperatureController implements DataController<PolylineDataNew> {
+    Logger logger = LoggerFactory.getLogger(KocinkaTemperatureV2Controller.class);
 
     @CrossOrigin
     @GetMapping("/info")
     public ResponseEntity<Info> getInfo(HttpServletRequest request) {
-        Info info = new Info("kocinkaV2", "Kocinka New Random", "New Random data from Kocinka", DataType.LINE, "[hPa]", "#32A852", "#E81CBF", getAvailableDates());
+        Info info = new Info("riverTemperature1", "Kocinka Temperature new", "Kocinka Temperature data", DataType.LINE, "[°C]", "#FFF000", "#000FFF", getAvailableDates());
         return new ResponseEntity<>(info, HttpStatus.OK);
     }
 
     private List<LocalDate> getAvailableDates() {
-        List<LocalDate> list = new ArrayList<>();
-        for (int i = 1; i < 300; i++) {
-            list.add(LocalDate.of(2020, Month.APRIL, 19).plusDays(i));
-        }
-        return list;
+        List<PointData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
+        return kocinkaTemperatureData.stream().map(a -> LocalDate.ofInstant(a.getDate(), ZoneId.systemDefault())).distinct().collect(Collectors.toList());
     }
 }

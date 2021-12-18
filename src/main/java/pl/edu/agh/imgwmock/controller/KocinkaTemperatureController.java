@@ -1,5 +1,6 @@
 package pl.edu.agh.imgwmock.controller;
 
+import lombok.val;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -11,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import pl.edu.agh.imgwmock.model.*;
 import pl.edu.agh.imgwmock.utils.CSVUtils;
-import pl.edu.agh.imgwmock.utils.DailyPrecipitationUtils;
 import pl.edu.agh.imgwmock.utils.KocinkaUtils;
+import pl.edu.agh.imgwmock.utils.NewKocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
@@ -21,16 +22,13 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Controller
 @RequestMapping("/kocinkaTemperature")
-public class KocinkaTemperatureController implements DataController<PolylinePoint> {
+public class KocinkaTemperatureController implements DataController<PolylineDataNew> {
     Logger logger = LoggerFactory.getLogger(KocinkaTemperatureController.class);
 
     @CrossOrigin
@@ -42,19 +40,16 @@ public class KocinkaTemperatureController implements DataController<PolylinePoin
 
     @CrossOrigin
     @GetMapping("/data")
-    public ResponseEntity<List<PolylinePoint>> getData(
-            @RequestParam(value = "stationId", required = false) Optional<Long> stationId, // ignored
+    public ResponseEntity<List<PolylineDataNew>> getData(
+            @RequestParam(value = "stationId", required = false) Optional<Long> stationId,
             @RequestParam(value = "date", required = false) Optional<String> dateString,
             @RequestParam(value = "dateFrom", required = false) Optional<String> dateFrom,
             @RequestParam(value = "dateTo", required = false) Optional<String> dateTo,
             @RequestParam(value = "dateInstant", required = false) Optional<String> instant,
             HttpServletRequest request) {
-        logger.info("Getting Kocinka");
-        List<DailyPrecipitation> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
-
+        List<PointData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
         Optional<Instant> dateFromOpt = Optional.empty();
         Optional<Instant> dateToOpt = Optional.empty();
-
 
         if (dateString.isPresent()) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -72,76 +67,53 @@ public class KocinkaTemperatureController implements DataController<PolylinePoin
             dateToOpt = Optional.of(Instant.parse(instant.get()).plusSeconds(900));
         }
 
-        Optional<Instant> finalDateFromOpt = dateFromOpt;
-        Optional<Instant> finalDateToOpt = dateToOpt;
-
-        if (dateFromOpt.isEmpty() || dateToOpt.isEmpty()) {
-            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.BAD_REQUEST);
+        if (stationId.isPresent()) {
+            kocinkaTemperatureData = kocinkaTemperatureData.stream().filter(a -> a.getStationId().equals(stationId.get())).collect(Collectors.toList());
         }
 
-        kocinkaTemperatureData = kocinkaTemperatureData.stream()
-                .filter(temperature ->
-                        temperature.getDate().isAfter(finalDateFromOpt.get()) && temperature.getDate().isBefore(finalDateToOpt.get()))
-                .collect(Collectors.toList());
-
-        List<PolylinePoint> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.empty());
-        List<DailyPrecipitation> finalKocinkaTemperatureData = kocinkaTemperatureData;
-        List<PolylinePoint> result = new ArrayList<>();
-
-        kocinka.forEach(point -> {
-                    Station closestStation = findClosestStation(point);
-                    List<DailyPrecipitation> values = finalKocinkaTemperatureData.stream()
-                            .filter(temp -> temp.getStationId().equals(closestStation.getId()))
-                            .collect(Collectors.toList());
-                    values.forEach(value ->
-                            result.add(new PolylinePoint(
-                                            point.getId(),
-                                            point.getLatitude(),
-                                            point.getLongitude(),
-                                            value.getValue(),
-                                            value.getDate()
-                                    )
-                            ));
-//                    if (values.size() > 0) {
-//                        result.add(new PolylinePoint(
-//                                        point.getId(),
-//                                        point.getLatitude(),
-//                                        point.getLongitude(),
-//                                        values.get(0).getValue(),
-//                                        values.get(0).getDate()
-//                                )
-//                        );
-//                    } else {
-//                        result.add(new PolylinePoint(
-//                                        point.getId(),
-//                                        point.getLatitude(),
-//                                        point.getLongitude(),
-//                                        null,
-//                                        point.getDate()
-//                                )
-//                        );
-//                    }
-                }
-        );
-        if (dateString.isPresent()) {
-            return new ResponseEntity<>(result.stream().filter(distinctByKey(PolylinePoint::getDate)).collect(Collectors.toList()), HttpStatus.OK);
+        if (dateFromOpt.isPresent()) {
+            Optional<Instant> finalDateFromOpt = dateFromOpt;
+            kocinkaTemperatureData = kocinkaTemperatureData.stream().filter(a -> a.getDate().isAfter(finalDateFromOpt.get())).collect(Collectors.toList());
         }
 
+        if (dateToOpt.isPresent()) {
+            Optional<Instant> finalDateToOpt = dateToOpt;
+            kocinkaTemperatureData = kocinkaTemperatureData.stream().filter(a -> a.getDate().isBefore(finalDateToOpt.get())).collect(Collectors.toList());
+        }
+        List<PolylineDataNew> result = new ArrayList<>();
+        val kocinkaLines = NewKocinkaUtils.getKocinkaStations();
+        Long lastId = 0L;
+        for (Station point : kocinkaLines) {
+            val closestStation = findClosestStation(point);
+            val dataFromStation = kocinkaTemperatureData.stream()
+                    .filter(a -> a.getStationId().equals(closestStation.getId())).collect(Collectors.toList());
+            if (dataFromStation.size() > 0) {
+                result.add(new PolylineDataNew(
+                        lastId,
+                        point.getId(),
+                        dataFromStation.get(0).getValue(),
+                        dataFromStation.get(0).getDate()
+                ));
+            } else {
+                result.add(new PolylineDataNew(
+                        lastId,
+                        point.getId(),
+                        null,
+                        null
+                ));
+            }
+            lastId += 1;
+        }
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    public static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
-        Map<Object, Boolean> map = new ConcurrentHashMap<>();
-        return t -> map.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
-    }
-
-    private Station findClosestStation(PolylinePoint point) {
+    private Station findClosestStation(Station point) {
         List<Station> kocinkaStations = CSVUtils.getStationListFromCSV("src/main/resources/kocinka/kocinka_stations.csv");
         AtomicReference<Double> smallestDistance = new AtomicReference<>(Double.MAX_VALUE);
         AtomicReference<Station> closestStation = new AtomicReference<>();
 
         kocinkaStations.forEach(station -> {
-            Double distanceSquare = Math.abs(station.getLatitude() - point.getLatitude()) + Math.abs(station.getLongitude() - point.getLongitude());
+            Double distanceSquare = Math.abs(station.getPoints().get(0)[0] - point.getPoints().get(0)[0]) + Math.abs(station.getPoints().get(0)[1] - point.getPoints().get(0)[1]);
             if (distanceSquare < smallestDistance.get()) {
                 smallestDistance.set(distanceSquare);
                 closestStation.set(station);
@@ -151,34 +123,31 @@ public class KocinkaTemperatureController implements DataController<PolylinePoin
         return closestStation.get();
     }
 
-    private Stream<DailyPrecipitation> temperatureBetween(Instant instantFrom, Instant instantTo) {
-        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaTemperatureData()
+    private Stream<PointData> temperatureBetween(Instant instantFrom, Instant instantTo) {
+        List<PointData> kocinka = KocinkaUtils.getKocinkaTemperatureData()
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         return kocinka.stream().filter(
-                dailyPrecipitation -> {
-                    Instant date = dailyPrecipitation.getDate();
-                    return !date.isBefore(instantFrom) && !date.isAfter(instantTo);
-                });
+                dailyPrecipitation ->dailyPrecipitation.getDate().isAfter(instantFrom) && dailyPrecipitation.getDate().isBefore(instantTo));
     }
 
     @CrossOrigin
     @GetMapping("/min")
-    public ResponseEntity<java.lang.Double> getMinValue(
+    public ResponseEntity<Double> getMinValue(
             @RequestParam(value = "instantFrom") String instantFrom,
             @RequestParam(value = "length") int length,
             HttpServletRequest request) {
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaTemperatureData()
+        List<PointData> kocinka = KocinkaUtils.getKocinkaTemperatureData()
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         List<Instant> aggregated = getAggregatedTimePoints(kocinka, dateFromInst, Instant.MAX);
         Instant dateToInst;
-        if(aggregated.size() >= length) dateToInst = aggregated.get(length - 1);
-        else dateToInst = aggregated.get(aggregated.size()-1);
+        if (aggregated.size() >= length) dateToInst = aggregated.get(length - 1);
+        else dateToInst = aggregated.get(aggregated.size() - 1);
         dateToInst = dateToInst.plusSeconds(900);
         dateFromInst = dateFromInst.minusSeconds(900);
 
         OptionalDouble minValue =
-                temperatureBetween(dateFromInst, dateToInst).mapToDouble(DailyPrecipitation::getValue).min();
+                temperatureBetween(dateFromInst, dateToInst).mapToDouble(PointData::getValue).min();
 
         if (minValue.isPresent())
             return new ResponseEntity<>(minValue.getAsDouble(), HttpStatus.OK);
@@ -187,22 +156,22 @@ public class KocinkaTemperatureController implements DataController<PolylinePoin
 
     @CrossOrigin
     @GetMapping("/max")
-    public ResponseEntity<java.lang.Double> getMaxValue(
+    public ResponseEntity<Double> getMaxValue(
             @RequestParam(value = "instantFrom") String instantFrom,
             @RequestParam(value = "length") int length,
             HttpServletRequest request) {
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<DailyPrecipitation> kocinka = KocinkaUtils.getKocinkaTemperatureData()
+        List<PointData> kocinka = KocinkaUtils.getKocinkaTemperatureData()
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         List<Instant> aggregated = getAggregatedTimePoints(kocinka, dateFromInst, Instant.MAX);
         Instant dateToInst;
-        if(aggregated.size() >= length) dateToInst = aggregated.get(length - 1);
-        else dateToInst = aggregated.get(aggregated.size()-1);
+        if (aggregated.size() >= length) dateToInst = aggregated.get(length - 1);
+        else dateToInst = aggregated.get(aggregated.size() - 1);
         dateToInst = dateToInst.plusSeconds(900);
         dateFromInst = dateFromInst.minusSeconds(900);
 
         OptionalDouble maxValue =
-                temperatureBetween(dateFromInst, dateToInst).mapToDouble(DailyPrecipitation::getValue).max();
+                temperatureBetween(dateFromInst, dateToInst).mapToDouble(PointData::getValue).max();
 
         if (maxValue.isPresent())
             return new ResponseEntity<>(maxValue.getAsDouble(), HttpStatus.OK);
@@ -210,7 +179,7 @@ public class KocinkaTemperatureController implements DataController<PolylinePoin
     }
 
     private List<LocalDate> getAvailableDates() {
-        List<DailyPrecipitation> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
+        List<PointData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
         return kocinkaTemperatureData.stream().map(a -> LocalDate.ofInstant(a.getDate(), ZoneId.systemDefault())).distinct().collect(Collectors.toList());
     }
 
@@ -220,31 +189,31 @@ public class KocinkaTemperatureController implements DataController<PolylinePoin
     public ResponseEntity<Instant> getTimePointAfter(
             @RequestParam(value = "instantFrom") String instantFrom,
             @RequestParam(value = "step") int step,
-            HttpServletRequest request){
+            HttpServletRequest request) {
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<DailyPrecipitation> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData()
+        List<PointData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData()
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
 
         List<Instant> timePointsAfter = getAggregatedTimePoints(kocinkaTemperatureData, dateFromInst, Instant.MAX);
 
         Instant instant;
-        if(timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
+        if (timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
         else instant = timePointsAfter.get(step);
 
         return new ResponseEntity<>(instant, HttpStatus.OK);
     }
 
-    @CrossOrigin 
+    @CrossOrigin
     @GetMapping("/dayTimePoints")
     @Override
     public ResponseEntity getDayTimePoints(
             @RequestParam(value = "date") String dateString,
-            HttpServletRequest request){
+            HttpServletRequest request) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         Instant instantFrom = LocalDate.parse(dateString, formatter).atTime(0, 0, 0).toInstant(ZoneOffset.UTC);
         Instant instantTo = LocalDate.parse(dateString, formatter).atTime(23, 59, 59).toInstant(ZoneOffset.UTC);
-        
-        List<DailyPrecipitation> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData()
+
+        List<PointData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData()
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
 
         List<Instant> ret = getAggregatedTimePoints(kocinkaTemperatureData, instantFrom, instantTo);
@@ -252,20 +221,41 @@ public class KocinkaTemperatureController implements DataController<PolylinePoin
         return new ResponseEntity<>(ret, HttpStatus.OK);
     }
 
-    private List<Instant> getAggregatedTimePoints(List<DailyPrecipitation> list, Instant instantFrom, Instant instantTo){
-        List<Instant> dayTimePoints = list.stream().map(DailyPrecipitation::getDate).filter(date -> !date.isBefore(instantFrom) && !date.isAfter(instantTo)).sorted().distinct().collect(Collectors.toList());
+    private List<Instant> getAggregatedTimePoints(List<PointData> list, Instant instantFrom, Instant instantTo) {
+        List<Instant> dayTimePoints = list.stream().map(PointData::getDate).filter(date -> !date.isBefore(instantFrom) && !date.isAfter(instantTo)).sorted().distinct().collect(Collectors.toList());
 
         ArrayList<Instant> hours = new ArrayList<Instant>();
-        for(Instant i : dayTimePoints){
+        for (Instant i : dayTimePoints) {
             if (!hours.contains(i)) {
                 boolean canAdd = true;
-                for(Instant j : hours) {
+                for (Instant j : hours) {
                     if (j.minusSeconds(900).isBefore(i) && j.plusSeconds(900).isAfter(i)) canAdd = false;
                 }
-                if(canAdd) hours.add(i);
+                if (canAdd) hours.add(i);
             }
         }
 
         return hours.stream().sorted().distinct().collect(Collectors.toList());
+    }
+
+    @CrossOrigin
+    @GetMapping("/stations")
+    public ResponseEntity<List<Station>> getAllStations(
+            @RequestParam(value = "id", required = false) Optional<Long> id,
+            HttpServletRequest request
+    ) {
+        List<Station> stations = NewKocinkaUtils.getKocinkaStations();
+        if (id.isPresent()) {
+            Optional<Station> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
+            if (station.isPresent()) {
+                return new ResponseEntity<>(List.of(station.get()), HttpStatus.OK);
+            } else {
+                //not found
+                return new ResponseEntity<>(List.of(), HttpStatus.OK);
+            }
+        } else {
+            // no id - get all stations from database
+            return new ResponseEntity<>(stations, HttpStatus.OK);
+        }
     }
 }
