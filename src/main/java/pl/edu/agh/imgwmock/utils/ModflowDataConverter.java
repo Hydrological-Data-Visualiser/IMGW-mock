@@ -35,6 +35,8 @@ public class ModflowDataConverter {
 
     private ModflowModelInfo info;
 
+    private int LAYER = 3;
+
     public List<String> possibleDates = List.of(
             "2017-04-17T00:00:00.00Z",
             "2017-07-17T00:00:00.00Z",
@@ -71,7 +73,7 @@ public class ModflowDataConverter {
     public List<PolygonDataNew> getData() {
         List result = new ArrayList();
         for(int stressPeriod = 0; stressPeriod < 13; stressPeriod++) {
-            result.addAll(convertDataToPolygons(stressPeriod, 0));
+            result.addAll(convertDataToPolygons(stressPeriod, LAYER));
         }
         return result;
     }
@@ -79,25 +81,25 @@ public class ModflowDataConverter {
     public String getTimePointAfter(String instantFrom, int step) {
         int index = 0;
         for (int i = 0; i < possibleDates.size(); i++) {
-            if (possibleDates.get(i).equals(instantFrom)) {
+            if (compareStringInstant(instantFrom, i)) {
                 index = i;
                 break;
             }
         }
-        return possibleDates.get(index + step);
+        return possibleDates.get(index + step < possibleDates.size() ? index + step : 12);
     }
 
     public Double getMinValueOnInterval(String instantFrom, int interval) {
         int index = 0;
         for (int i = 0; i < possibleDates.size(); i++) {
-            if (possibleDates.get(i).equals(instantFrom)) {
+            if (compareStringInstant(instantFrom, i)) {
                 index = i;
                 break;
             }
         }
         Double min = 999.0;
-        for (int i = index; i < index + interval; i++) {
-            Double tmpMinValue = getMinValue(i, 0);
+        for (int i = index; i < index + interval && i < possibleDates.size(); i++) {
+            Double tmpMinValue = getMinValue(i, LAYER);
             min = min > tmpMinValue ? tmpMinValue : min;
         }
         return min;
@@ -106,17 +108,21 @@ public class ModflowDataConverter {
     public Double getMaxValueOnInterval(String instantFrom, int interval) {
         int index = 0;
         for (int i = 0; i < possibleDates.size(); i++) {
-            if (possibleDates.get(i).equals(instantFrom)) {
+            if (compareStringInstant(instantFrom, i)) {
                 index = i;
                 break;
             }
         }
         Double max = -999.0;
-        for (int i = index; i < index + interval; i++) {
-            Double tmpMaxValue = getMaxValue(i, 0);
+        for (int i = index; i < index + interval && i < possibleDates.size(); i++) {
+            Double tmpMaxValue = getMaxValue(i, LAYER);
             max = max < tmpMaxValue ? tmpMaxValue : max;
         }
         return max;
+    }
+
+    private boolean compareStringInstant(String instantFrom, int index) {
+        return possibleDates.get(index).substring(0, 10).equals(instantFrom.substring(0, 10));
     }
 
     private Double getMinValue(int stressPeriod, int layerNumber) {
