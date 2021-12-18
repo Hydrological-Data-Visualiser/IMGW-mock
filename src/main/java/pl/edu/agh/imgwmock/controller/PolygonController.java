@@ -197,9 +197,9 @@ public class PolygonController implements DataController<PolygonDataNew> {
         Instant instantFrom = Instant.parse(instantFromString);
         Instant instantTo = Instant.parse(instantToString);
 
-        List<PolygonDataOld> kocinka = CSVUtils.getNewPolygons("src/main/resources/polygons.json")
+        List<PolygonDataOld> polygons = CSVUtils.getNewPolygons("src/main/resources/polygons.json")
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
-        List<Instant> aggregated = getAggregatedTimePoints(kocinka, instantFrom, instantTo);
+        List<Instant> aggregated = getAggregatedTimePoints(polygons, instantFrom, instantTo);
 
         return new ResponseEntity<>(aggregated.size(), HttpStatus.OK);
     }
