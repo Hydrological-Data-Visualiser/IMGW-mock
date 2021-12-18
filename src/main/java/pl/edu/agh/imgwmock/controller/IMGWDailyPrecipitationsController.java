@@ -170,6 +170,30 @@ public class IMGWDailyPrecipitationsController implements DataController<PointDa
     }
 
     @CrossOrigin
+    @GetMapping("/length")
+    @Override
+    public ResponseEntity<Integer> getLengthBetween(
+            @RequestParam(value = "instantFrom") String instantFromString,
+            @RequestParam(value = "instantTo") String instantToString,
+            HttpServletRequest request) {
+        Instant instantFrom = Instant.parse(instantFromString);
+        Instant instantTo = Instant.parse(instantFromString);
+
+        List<PointData> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull()
+            .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
+
+        int count = 
+          dailyPrecipitations.stream()
+          .map(PointData::getDate)
+          .filter(date -> !date.isBefore(instantFrom) && !date.isAfter(instantTo))
+          .sorted()
+          .distinct()
+          .collect(Collectors.toList()).size();
+
+        return new ResponseEntity<>(count, HttpStatus.OK);
+    }
+
+    @CrossOrigin
     @GetMapping("/stations")
     public ResponseEntity<List<Station>> getAllStations(
             @RequestParam(value = "id", required = false) Optional<Long> id,

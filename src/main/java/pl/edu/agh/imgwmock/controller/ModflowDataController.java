@@ -77,6 +77,15 @@ public class ModflowDataController implements DataController<PolygonDataNew> {
     }
 
     @CrossOrigin
+    @GetMapping("/length")
+    public ResponseEntity<Integer> getLengthBetween(
+            @RequestParam(value = "instantFrom") String instantFromString,
+            @RequestParam(value = "instantTo") String instantToString,
+            HttpServletRequest request) {
+        return new ResponseEntity<Integer>(converter.getLengthBetween(instantFromString, instantToString), HttpStatus.OK);
+    }
+
+    @CrossOrigin
     @GetMapping("/stations")
     public ResponseEntity<List<Station>> getAllStations(
             @RequestParam(value = "id", required = false) Optional<Long> id,
