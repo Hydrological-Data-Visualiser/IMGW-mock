@@ -221,6 +221,25 @@ public class KocinkaTemperatureController implements DataController<PolylineData
         return new ResponseEntity<>(ret, HttpStatus.OK);
     }
 
+    @CrossOrigin
+    @GetMapping("/length")
+    @Override
+    public ResponseEntity<Integer> getLengthBetween(
+            @RequestParam(value = "instantFrom") String instantFromString,
+            @RequestParam(value = "instantTo") String instantToString,
+            HttpServletRequest request){
+        Instant instantFrom = Instant.parse(instantFromString);
+        Instant instantTo = Instant.parse(instantToString);
+
+        List<PointData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData()
+                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
+
+        // if does not work properly, then divide by days and run getAggergatedTimePoints for each 
+        List<Instant> ret = getAggregatedTimePoints(kocinkaTemperatureData, instantFrom, instantTo);
+
+        return new ResponseEntity<>(ret.size(), HttpStatus.OK);
+    }
+
     private List<Instant> getAggregatedTimePoints(List<PointData> list, Instant instantFrom, Instant instantTo) {
         List<Instant> dayTimePoints = list.stream().map(PointData::getDate).filter(date -> !date.isBefore(instantFrom) && !date.isAfter(instantTo)).sorted().distinct().collect(Collectors.toList());
 

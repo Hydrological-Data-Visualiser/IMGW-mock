@@ -78,6 +78,27 @@ public class ModflowDataConverter {
         return result;
     }
 
+    public int getLengthBetween(String instantFrom, String instantTo) {
+        int indexStart = 0;
+        int indexEnd = 0;
+        
+        for (int i = 0; i < possibleDates.size(); i++) {
+            if (compareStringInstant(instantFrom, i)) {
+                indexStart = i;
+                break;
+            }
+        }
+
+        for (int i = indexStart; i < possibleDates.size(); i++) {
+            if (compareStringInstant(instantFrom, i)) {
+                indexEnd = i;
+                break;
+            }
+        }
+
+        return indexEnd - indexStart + 1;
+    }
+
     public String getTimePointAfter(String instantFrom, int step) {
         int index = 0;
         for (int i = 0; i < possibleDates.size(); i++) {

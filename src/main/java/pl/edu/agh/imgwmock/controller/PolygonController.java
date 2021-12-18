@@ -187,6 +187,24 @@ public class PolygonController implements DataController<PolygonDataNew> {
     }
 
     @CrossOrigin
+    @GetMapping("/length")
+    @Override
+    public ResponseEntity<Integer> getLengthBetween(
+            @RequestParam(value = "instantFrom") String instantFromString,
+            @RequestParam(value = "instantTo") String instantToString,
+            HttpServletRequest request
+    ) {
+        Instant instantFrom = Instant.parse(instantFromString);
+        Instant instantTo = Instant.parse(instantToString);
+
+        List<PolygonDataOld> kocinka = CSVUtils.getNewPolygons("src/main/resources/polygons.json")
+                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
+        List<Instant> aggregated = getAggregatedTimePoints(kocinka, instantFrom, instantTo);
+
+        return new ResponseEntity<>(aggregated.size(), HttpStatus.OK);
+    }
+
+    @CrossOrigin
     @GetMapping("/stations")
     public ResponseEntity<List<Station>> getAllStations(
             @RequestParam(value = "id", required = false) Optional<Long> id,

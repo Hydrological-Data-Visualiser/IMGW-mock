@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -101,6 +102,24 @@ public class KocinkaController implements DataController<PolylineDataNew> {
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         ArrayList<Instant> dayTimePoints = new ArrayList(Collections.singleton(kocinka.get(0).getDate()));
         return new ResponseEntity<>(dayTimePoints, HttpStatus.OK);
+    }
+
+    @CrossOrigin
+    @GetMapping("/length")
+    @Override
+    public ResponseEntity<Integer> getLengthBetween(
+        @RequestParam(value = "instantFrom") String instantFromString,
+        @RequestParam(value = "instantTo") String instantToString,
+        HttpServletRequest request
+    ) {
+        Instant instantFrom = Instant.parse(instantFromString);
+        Instant instantTo = Instant.parse(instantToString);
+
+        List<Instant> times = getAvailableDates().stream()
+                .map(date -> date.atTime(0,0,0).toInstant(ZoneOffset.UTC))
+                .filter(date -> !date.isBefore(instantFrom) && !date.isAfter(instantTo))
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(times.size(), HttpStatus.OK);
     }
 
     @CrossOrigin

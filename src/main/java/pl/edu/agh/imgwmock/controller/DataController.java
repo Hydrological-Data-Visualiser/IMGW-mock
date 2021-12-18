@@ -42,6 +42,12 @@ public interface DataController<T> {
             HttpServletRequest request
     );
 
+    ResponseEntity<Integer> getLengthBetween(
+            @RequestParam(value = "instantFrom") String instantFromString,
+            @RequestParam(value = "instantTo") String instantToString,
+            HttpServletRequest request
+    );
+
     ResponseEntity<List<Station>> getAllStations(
             @RequestParam(value = "id", required = false) Optional<Long> id,
             HttpServletRequest request
