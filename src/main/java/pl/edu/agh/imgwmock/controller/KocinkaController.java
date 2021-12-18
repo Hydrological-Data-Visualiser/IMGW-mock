@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneOffset;
+import java.time.chrono.ChronoLocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -81,9 +82,12 @@ public class KocinkaController implements DataController<PolylineDataNew> {
             @RequestParam(value = "step") int step,
             HttpServletRequest request){
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<PolylineDataOld> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.of(instantFrom))
-                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
-        List<Instant> timePointsAfter = kocinka.stream().map(PolylineDataOld::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().collect(Collectors.toList());
+        List<Instant> timePointsAfter = getAvailableDates().stream()
+                .map(date -> date.atTime(10,15,30).toInstant(ZoneOffset.UTC))
+                .filter(date -> !date.isBefore(dateFromInst))
+                .sorted()
+                .distinct()
+                .collect(Collectors.toList());
 
         Instant instant;
         if(timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
