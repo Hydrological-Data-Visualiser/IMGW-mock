@@ -124,7 +124,7 @@ public class ModflowDataConverter {
         Double min = 999.0;
         for (var row : layer) {
             for (var val : row) {
-                if (min > val) min = val;
+                if (min > val && Double.compare(val, -999.0) != 0) min = val;
             }
         }
         return min;
@@ -184,7 +184,12 @@ public class ModflowDataConverter {
         List<PolygonDataNew> result = new ArrayList<>();
         for (int i = 0; i < layer.size(); i++) {
             for (int j = 0; j < layer.get(i).size(); j++) {
-                result.add(new PolygonDataNew(id, id, layer.get(i).get(j), Instant.parse(getDate(stressPeriod))));
+                Double value = layer.get(i).get(j);
+                result.add(new PolygonDataNew(
+                        id,
+                        id,
+                        Double.compare(value, -999.0) == 0 ? null : value,
+                        Instant.parse(getDate(stressPeriod))));
                 id++;
             }
         }
