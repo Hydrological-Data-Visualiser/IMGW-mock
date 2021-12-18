@@ -76,12 +76,62 @@ public class ModflowDataConverter {
         return result;
     }
 
-    public Double getMinValue() {
-        return -999.0;
+    public String getTimePointAfter(String instantFrom, int step) {
+        int index = 0;
+        for (int i = 0; i < possibleDates.size(); i++) {
+            if (possibleDates.get(i).equals(instantFrom)) {
+                index = i;
+                break;
+            }
+        }
+        return possibleDates.get(index + step);
     }
 
-    public Double getMaxValue() {
-        var layer = data.get(0).get(0);
+    public Double getMinValueOnInterval(String instantFrom, int interval) {
+        int index = 0;
+        for (int i = 0; i < possibleDates.size(); i++) {
+            if (possibleDates.get(i).equals(instantFrom)) {
+                index = i;
+                break;
+            }
+        }
+        Double min = 999.0;
+        for (int i = index; i < index + interval; i++) {
+            Double tmpMinValue = getMinValue(i, 0);
+            min = min > tmpMinValue ? tmpMinValue : min;
+        }
+        return min;
+    }
+
+    public Double getMaxValueOnInterval(String instantFrom, int interval) {
+        int index = 0;
+        for (int i = 0; i < possibleDates.size(); i++) {
+            if (possibleDates.get(i).equals(instantFrom)) {
+                index = i;
+                break;
+            }
+        }
+        Double max = -999.0;
+        for (int i = index; i < index + interval; i++) {
+            Double tmpMaxValue = getMaxValue(i, 0);
+            max = max < tmpMaxValue ? tmpMaxValue : max;
+        }
+        return max;
+    }
+
+    private Double getMinValue(int stressPeriod, int layerNumber) {
+        var layer = data.get(stressPeriod).get(layerNumber);
+        Double min = 999.0;
+        for (var row : layer) {
+            for (var val : row) {
+                if (min > val) min = val;
+            }
+        }
+        return min;
+    }
+
+    private Double getMaxValue(int stressPeriod, int layerNumber) {
+        var layer = data.get(stressPeriod).get(layerNumber);
         Double max = -999.0;
         for (var row : layer) {
             for (var val : row) {

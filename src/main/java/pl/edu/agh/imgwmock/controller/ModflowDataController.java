@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -42,20 +43,29 @@ public class ModflowDataController implements DataController<PolygonDataNew> {
 
     @CrossOrigin
     @GetMapping("/min")
-    public ResponseEntity<Double> getMinValue(String instantFrom, int length, HttpServletRequest request) {
-        return new ResponseEntity<>(converter.getMinValue(), HttpStatus.OK);
+    public ResponseEntity<Double> getMinValue(
+            @RequestParam(value = "instantFrom") String instantFrom,
+            @RequestParam(value = "length") int length,
+            HttpServletRequest request) {
+        return new ResponseEntity<>(converter.getMinValueOnInterval(instantFrom, length), HttpStatus.OK);
     }
 
     @CrossOrigin
     @GetMapping("/max")
-    public ResponseEntity<Double> getMaxValue(String instantFrom, int length, HttpServletRequest request) {
-        return new ResponseEntity<>(converter.getMaxValue(), HttpStatus.OK);
+    public ResponseEntity<Double> getMaxValue(
+            @RequestParam(value = "instantFrom") String instantFrom,
+            @RequestParam(value = "length") int length,
+            HttpServletRequest request) {
+        return new ResponseEntity<>(converter.getMaxValueOnInterval(instantFrom, length), HttpStatus.OK);
     }
 
     @CrossOrigin
     @GetMapping("/timePointsAfter")
-    public ResponseEntity<Instant> getTimePointAfter(String instantFrom, int step, HttpServletRequest request) {
-        return null;
+    public ResponseEntity<Instant> getTimePointAfter(
+            @RequestParam(value = "instantFrom") String instantFrom,
+            @RequestParam(value = "step") int step,
+            HttpServletRequest request) {
+        return new ResponseEntity<>(Instant.parse(converter.getTimePointAfter(instantFrom, step)), HttpStatus.OK);
     }
 
     @CrossOrigin
@@ -72,9 +82,19 @@ public class ModflowDataController implements DataController<PolygonDataNew> {
             @RequestParam(value = "id", required = false) Optional<Long> id,
             HttpServletRequest request
     ) {
-        val list = converter.getStations();
-        return new ResponseEntity<>(list, HttpStatus.OK);
-    }
+        val stations = converter.getStations();
+        if (id.isPresent()) {
+            Optional<Station> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
+            if (station.isPresent()) {
+                return new ResponseEntity<>(List.of(station.get()), HttpStatus.OK);
+            } else {
+                //not found
+                return new ResponseEntity<>(List.of(), HttpStatus.OK);
+            }
+        } else {
+            // no id - get all stations from database
+            return new ResponseEntity<>(stations, HttpStatus.OK);
+        }}
 
     @CrossOrigin
     @GetMapping("/data")
@@ -107,15 +127,15 @@ public class ModflowDataController implements DataController<PolygonDataNew> {
         }
 
         if (stationId.isPresent()) {
-            data = data.stream().filter(precipitation -> precipitation.getPolygonId().equals(stationId.get())).collect(Collectors.toList());
+            data = data.stream().filter(d -> d.getPolygonId().equals(stationId.get())).collect(Collectors.toList());
         }
         if (dateFromOpt.isPresent()) {
             Optional<Instant> finalDateFromOpt1 = dateFromOpt;
-            data = data.stream().filter(precipitation -> precipitation.getDate().isAfter(finalDateFromOpt1.get())).collect(Collectors.toList());
+            data = data.stream().filter(d -> d.getDate().isAfter(finalDateFromOpt1.get())).collect(Collectors.toList());
         }
         if (dateToOpt.isPresent()) {
             Optional<Instant> finalDateToOpt1 = dateToOpt;
-            data = data.stream().filter(precipitation -> precipitation.getDate().isBefore(finalDateToOpt1.get())).collect(Collectors.toList());
+            data = data.stream().filter(d -> d.getDate().isBefore(finalDateToOpt1.get())).collect(Collectors.toList());
         }
         return new ResponseEntity<>(data, HttpStatus.OK);
     }
