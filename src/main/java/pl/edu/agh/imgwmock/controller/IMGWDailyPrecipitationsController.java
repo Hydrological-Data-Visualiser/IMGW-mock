@@ -177,7 +177,7 @@ public class IMGWDailyPrecipitationsController implements DataController<PointDa
             @RequestParam(value = "instantTo") String instantToString,
             HttpServletRequest request) {
         Instant instantFrom = Instant.parse(instantFromString);
-        Instant instantTo = Instant.parse(instantFromString);
+        Instant instantTo = Instant.parse(instantToString);
 
         List<PointData> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull()
             .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
