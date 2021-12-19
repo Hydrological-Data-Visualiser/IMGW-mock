@@ -16,10 +16,7 @@ import pl.edu.agh.imgwmock.model.Station;
 import pl.edu.agh.imgwmock.utils.NewKocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.Month;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,6 +25,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/kocinka")
 public class KocinkaController implements DataController<PolylineDataNew> {
     Logger logger = LoggerFactory.getLogger(KocinkaController.class);
+    List<PolylineDataNew> kocinka = NewKocinkaUtils.getNewKocinkaRandomDataNewNew();
 
     @CrossOrigin
     @GetMapping("/info")
@@ -36,12 +34,22 @@ public class KocinkaController implements DataController<PolylineDataNew> {
         return new ResponseEntity<>(info, HttpStatus.OK);
     }
 
+//    private List<LocalDate> getAvailableDates() {
+//        List<LocalDate> list = new ArrayList<>();
+//        for (int i = 1; i < 30; i++) {
+//            list.add(LocalDate.of(2021, Month.AUGUST, i));
+//        }
+//        return list;
+//    }
+
     private List<LocalDate> getAvailableDates() {
+        List<Instant> kocinka1 = this.kocinka.stream().map(PolylineDataNew::getDate).collect(Collectors.toList());
         List<LocalDate> list = new ArrayList<>();
-        for (int i = 1; i < 30; i++) {
-            list.add(LocalDate.of(2021, Month.AUGUST, i));
+        ZoneId zone = ZoneId.systemDefault();
+        for (Instant instant : kocinka1) {
+            list.add(LocalDate.ofInstant(instant, zone));
         }
-        return list;
+        return list.stream().distinct().collect(Collectors.toList());
     }
 
     @CrossOrigin
@@ -54,7 +62,7 @@ public class KocinkaController implements DataController<PolylineDataNew> {
             @RequestParam(value = "dateInstant", required = false) Optional<String> instant,
             HttpServletRequest request) {
         logger.info("Getting Kocinka");
-        List<PolylineDataNew> kocinka = NewKocinkaUtils.getNewKocinkaRandomDataNewNew();
+        List<PolylineDataNew> kocinka = this.kocinka;
         Optional<Instant> dateFromOpt = Optional.empty();
         Optional<Instant> dateToOpt = Optional.empty();
 
@@ -93,7 +101,7 @@ public class KocinkaController implements DataController<PolylineDataNew> {
     @GetMapping("/min")
     @Override
     public ResponseEntity<Double> getMinValue(String instantFrom, int length, HttpServletRequest request) {
-        List<PolylineDataNew> kocinka = NewKocinkaUtils.getNewKocinkaRandomDataNewNew()
+        List<PolylineDataNew> kocinka = this.kocinka
                 .stream().filter(riverPoint -> riverPoint.getValue() != null)
                 .filter(precipitation -> precipitation.getDate().isAfter(Instant.parse(instantFrom))).collect(Collectors.toList());
         if (kocinka.size() < length) {
@@ -109,7 +117,7 @@ public class KocinkaController implements DataController<PolylineDataNew> {
     @GetMapping("/max")
     @Override
     public ResponseEntity<Double> getMaxValue(String instantFrom, int length, HttpServletRequest request) {
-        List<PolylineDataNew> kocinka = NewKocinkaUtils.getNewKocinkaRandomDataNewNew()
+        List<PolylineDataNew> kocinka = this.kocinka
                 .stream().filter(riverPoint -> riverPoint.getValue() != null)
                 .filter(precipitation -> precipitation.getDate().isAfter(Instant.parse(instantFrom))).collect(Collectors.toList());
         if (kocinka.size() < length) {
@@ -129,7 +137,7 @@ public class KocinkaController implements DataController<PolylineDataNew> {
             @RequestParam(value = "step") int step,
             HttpServletRequest request) {
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<PolylineDataNew> kocinka = NewKocinkaUtils.getNewKocinkaRandomDataNewNew()
+        List<PolylineDataNew> kocinka = this.kocinka
                 .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
         List<Instant> timePointsAfter = kocinka.stream().map(PolylineDataNew::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().collect(Collectors.toList());
 
@@ -150,7 +158,7 @@ public class KocinkaController implements DataController<PolylineDataNew> {
         Instant instantFrom = LocalDate.parse(dateString, formatter).atTime(0, 0, 0).minusSeconds(1).toInstant(ZoneOffset.UTC);
         Instant instantTo = LocalDate.parse(dateString, formatter).atTime(23, 59, 59).toInstant(ZoneOffset.UTC);
 
-        List<PolylineDataNew> kocinka = NewKocinkaUtils.getNewKocinkaRandomDataNewNew()
+        List<PolylineDataNew> kocinka = this.kocinka
                 .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
 
         List<Instant> baseDayTimePoints = kocinka.stream().map(PolylineDataNew::getDate).filter(date -> !date.isBefore(instantFrom) && !date.isAfter(instantTo)).sorted().distinct().collect(Collectors.toList());
@@ -169,7 +177,7 @@ public class KocinkaController implements DataController<PolylineDataNew> {
         Instant instantFrom = Instant.parse(instantFromString);
         Instant instantTo = Instant.parse(instantToString);
 
-        List<PolylineDataNew> kocinka = NewKocinkaUtils.getNewKocinkaRandomDataNewNew()
+        List<PolylineDataNew> kocinka = this.kocinka
                 .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
 
         int count =
