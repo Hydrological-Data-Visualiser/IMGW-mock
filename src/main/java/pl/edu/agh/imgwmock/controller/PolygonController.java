@@ -58,19 +58,32 @@ public class PolygonController implements DataController<PolygonDataNew> {
         Optional<Instant> dateFromOpt = Optional.empty();
         Optional<Instant> dateToOpt = Optional.empty();
 
+        if (dateString.isPresent()) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            dateFromOpt = Optional.of(LocalDate.parse(dateString.get(), formatter).atTime(0, 0, 0).minusSeconds(1).toInstant(ZoneOffset.UTC));
+            dateToOpt = Optional.of(LocalDate.parse(dateString.get(), formatter).atTime(23, 59, 59).toInstant(ZoneOffset.UTC));
+        }
+
+        if (dateFrom.isPresent() && dateTo.isPresent()) {
+            dateFromOpt = Optional.of(Instant.parse(dateFrom.get()).minusSeconds(900));
+            dateToOpt = Optional.of(Instant.parse(dateTo.get()).plusSeconds(900));
+        }
+
         if (instant.isPresent()) {
             dateFromOpt = Optional.of(Instant.parse(instant.get()).minusSeconds(900));
             dateToOpt = Optional.of(Instant.parse(instant.get()).plusSeconds(900));
         }
 
-        if (dateFromOpt.isPresent() && dateToOpt.isPresent()) {
-            Optional<Instant> finalDateToOpt = dateToOpt;
-            Optional<Instant> finalDateFromOpt = dateFromOpt;
-
-            polygons = polygons.stream().filter(polygon ->
-                    polygon.getDate().isBefore(finalDateToOpt.get()) &&
-                            polygon.getDate().isAfter(finalDateFromOpt.get())
-            ).collect(Collectors.toList());
+        if (stationId.isPresent()) {
+            polygons = polygons.stream().filter(precipitation -> precipitation.getPolygonId().equals(stationId.get())).collect(Collectors.toList());
+        }
+        if (dateFromOpt.isPresent()) {
+            Optional<Instant> finalDateFromOpt1 = dateFromOpt;
+            polygons = polygons.stream().filter(precipitation -> precipitation.getDate().isAfter(finalDateFromOpt1.get())).collect(Collectors.toList());
+        }
+        if (dateToOpt.isPresent()) {
+            Optional<Instant> finalDateToOpt1 = dateToOpt;
+            polygons = polygons.stream().filter(precipitation -> precipitation.getDate().isBefore(finalDateToOpt1.get())).collect(Collectors.toList());
         }
 
         return new ResponseEntity<>(polygons, HttpStatus.OK);
