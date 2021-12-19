@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import pl.edu.agh.imgwmock.model.*;
-import pl.edu.agh.imgwmock.utils.KocinkaUtils;
+import pl.edu.agh.imgwmock.model.DataType;
+import pl.edu.agh.imgwmock.model.Info;
+import pl.edu.agh.imgwmock.model.PolylineDataNew;
+import pl.edu.agh.imgwmock.model.Station;
 import pl.edu.agh.imgwmock.utils.NewKocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -18,7 +20,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneOffset;
-import java.time.chrono.ChronoLocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -52,7 +54,38 @@ public class KocinkaController implements DataController<PolylineDataNew> {
             @RequestParam(value = "dateInstant", required = false) Optional<String> instant,
             HttpServletRequest request) {
         logger.info("Getting Kocinka");
-        List<PolylineDataNew> kocinka = NewKocinkaUtils.getNewKocinkaRandomData(instant);
+        List<PolylineDataNew> kocinka = NewKocinkaUtils.getNewKocinkaRandomDataNewNew();
+        Optional<Instant> dateFromOpt = Optional.empty();
+        Optional<Instant> dateToOpt = Optional.empty();
+
+        if (dateString.isPresent()) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            dateFromOpt = Optional.of(LocalDate.parse(dateString.get(), formatter).atTime(0, 0, 0).minusSeconds(1).toInstant(ZoneOffset.UTC));
+            dateToOpt = Optional.of(LocalDate.parse(dateString.get(), formatter).atTime(23, 59, 59).toInstant(ZoneOffset.UTC));
+        }
+
+        if (dateFrom.isPresent() && dateTo.isPresent()) {
+            dateFromOpt = Optional.of(Instant.parse(dateFrom.get()).minusSeconds(900));
+            dateToOpt = Optional.of(Instant.parse(dateTo.get()).plusSeconds(900));
+        }
+
+        if (instant.isPresent()) {
+            dateFromOpt = Optional.of(Instant.parse(instant.get()).minusSeconds(900));
+            dateToOpt = Optional.of(Instant.parse(instant.get()).plusSeconds(900));
+        }
+
+        if (stationId.isPresent()) {
+            kocinka = kocinka.stream().filter(precipitation -> precipitation.getPolylineId().equals(stationId.get())).collect(Collectors.toList());
+        }
+        if (dateFromOpt.isPresent()) {
+            Optional<Instant> finalDateFromOpt1 = dateFromOpt;
+            kocinka = kocinka.stream().filter(precipitation -> precipitation.getDate().isAfter(finalDateFromOpt1.get())).collect(Collectors.toList());
+        }
+        if (dateToOpt.isPresent()) {
+            Optional<Instant> finalDateToOpt1 = dateToOpt;
+            kocinka = kocinka.stream().filter(precipitation -> precipitation.getDate().isBefore(finalDateToOpt1.get())).collect(Collectors.toList());
+        }
+
         return new ResponseEntity<>(kocinka, HttpStatus.OK);
     }
 
@@ -60,18 +93,32 @@ public class KocinkaController implements DataController<PolylineDataNew> {
     @GetMapping("/min")
     @Override
     public ResponseEntity<Double> getMinValue(String instantFrom, int length, HttpServletRequest request) {
-        List<PolylineDataOld> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.of(instantFrom))
-                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
-        return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylineDataOld::getValue)).collect(Collectors.toList()).get(0).getValue(), HttpStatus.OK);
+        List<PolylineDataNew> kocinka = NewKocinkaUtils.getNewKocinkaRandomDataNewNew()
+                .stream().filter(riverPoint -> riverPoint.getValue() != null)
+                .filter(precipitation -> precipitation.getDate().isAfter(Instant.parse(instantFrom))).collect(Collectors.toList());
+        if (kocinka.size() < length) {
+            return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylineDataNew::getValue)).collect(Collectors.toList()).get(0).getValue(), HttpStatus.OK);
+        } else {
+            kocinka = kocinka.subList(0, length - 1);
+            return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylineDataNew::getValue)).collect(Collectors.toList()).get(0).getValue(), HttpStatus.OK);
+
+        }
     }
 
     @CrossOrigin
     @GetMapping("/max")
     @Override
     public ResponseEntity<Double> getMaxValue(String instantFrom, int length, HttpServletRequest request) {
-        List<PolylineDataOld> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.of(instantFrom))
-                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
-        return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylineDataOld::getValue)).collect(Collectors.toList()).get(kocinka.size()-1).getValue(), HttpStatus.OK);
+        List<PolylineDataNew> kocinka = NewKocinkaUtils.getNewKocinkaRandomDataNewNew()
+                .stream().filter(riverPoint -> riverPoint.getValue() != null)
+                .filter(precipitation -> precipitation.getDate().isAfter(Instant.parse(instantFrom))).collect(Collectors.toList());
+        if (kocinka.size() < length) {
+            return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylineDataNew::getValue)).collect(Collectors.toList()).get(kocinka.size() - 1).getValue(), HttpStatus.OK);
+        } else {
+            kocinka = kocinka.subList(0, length - 1);
+            return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylineDataNew::getValue)).collect(Collectors.toList()).get(kocinka.size() - 1).getValue(), HttpStatus.OK);
+
+        }
     }
 
     @CrossOrigin
@@ -80,50 +127,60 @@ public class KocinkaController implements DataController<PolylineDataNew> {
     public ResponseEntity<Instant> getTimePointAfter(
             @RequestParam(value = "instantFrom") String instantFrom,
             @RequestParam(value = "step") int step,
-            HttpServletRequest request){
+            HttpServletRequest request) {
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<Instant> timePointsAfter = getAvailableDates().stream()
-                .map(date -> date.atTime(10,15,30).toInstant(ZoneOffset.UTC))
-                .filter(date -> !date.isBefore(dateFromInst))
-                .sorted()
-                .distinct()
-                .collect(Collectors.toList());
+        List<PolylineDataNew> kocinka = NewKocinkaUtils.getNewKocinkaRandomDataNewNew()
+                .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
+        List<Instant> timePointsAfter = kocinka.stream().map(PolylineDataNew::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().collect(Collectors.toList());
 
         Instant instant;
-        if(timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
+        if (timePointsAfter.size() <= step) instant = timePointsAfter.get(timePointsAfter.size() - 1);
         else instant = timePointsAfter.get(step);
 
         return new ResponseEntity<>(instant, HttpStatus.OK);
     }
 
-    @CrossOrigin 
+    @CrossOrigin
     @GetMapping("/dayTimePoints")
     @Override
     public ResponseEntity getDayTimePoints(
             @RequestParam(value = "date") String dateString,
-            HttpServletRequest request){
-        List<PolylineDataOld> kocinka = KocinkaUtils.getKocinka("src/main/resources/kocinka.csv", Optional.empty())
-                .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
-        ArrayList<Instant> dayTimePoints = new ArrayList(Collections.singleton(kocinka.get(0).getDate()));
-        return new ResponseEntity<>(dayTimePoints, HttpStatus.OK);
+            HttpServletRequest request) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        Instant instantFrom = LocalDate.parse(dateString, formatter).atTime(0, 0, 0).minusSeconds(1).toInstant(ZoneOffset.UTC);
+        Instant instantTo = LocalDate.parse(dateString, formatter).atTime(23, 59, 59).toInstant(ZoneOffset.UTC);
+
+        List<PolylineDataNew> kocinka = NewKocinkaUtils.getNewKocinkaRandomDataNewNew()
+                .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
+
+        List<Instant> baseDayTimePoints = kocinka.stream().map(PolylineDataNew::getDate).filter(date -> !date.isBefore(instantFrom) && !date.isAfter(instantTo)).sorted().distinct().collect(Collectors.toList());
+
+        return new ResponseEntity<>(baseDayTimePoints, HttpStatus.OK);
     }
 
     @CrossOrigin
     @GetMapping("/length")
     @Override
     public ResponseEntity<Integer> getLengthBetween(
-        @RequestParam(value = "instantFrom") String instantFromString,
-        @RequestParam(value = "instantTo") String instantToString,
-        HttpServletRequest request
+            @RequestParam(value = "instantFrom") String instantFromString,
+            @RequestParam(value = "instantTo") String instantToString,
+            HttpServletRequest request
     ) {
         Instant instantFrom = Instant.parse(instantFromString);
         Instant instantTo = Instant.parse(instantToString);
 
-        List<Instant> times = getAvailableDates().stream()
-                .map(date -> date.atTime(0,0,0).toInstant(ZoneOffset.UTC))
-                .filter(date -> !date.isBefore(instantFrom) && !date.isAfter(instantTo))
-                .collect(Collectors.toList());
-        return new ResponseEntity<>(times.size(), HttpStatus.OK);
+        List<PolylineDataNew> kocinka = NewKocinkaUtils.getNewKocinkaRandomDataNewNew()
+                .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
+
+        int count =
+                kocinka.stream()
+                        .map(PolylineDataNew::getDate)
+                        .filter(date -> !date.isBefore(instantFrom) && !date.isAfter(instantTo))
+                        .sorted()
+                        .distinct()
+                        .collect(Collectors.toList()).size();
+
+        return new ResponseEntity<>(count, HttpStatus.OK);
     }
 
     @CrossOrigin

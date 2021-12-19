@@ -59,6 +59,24 @@ public class NewKocinkaUtils {
         return result;
     }
 
+    public static List<PolylineDataNew> getNewKocinkaRandomDataNewNew() {
+        List<PolylineDataNew> kocinka = new ArrayList<>();
+        try (CSVReader reader = new CSVReader(new FileReader("src/main/resources/kocinkaRandom.csv"))) {
+            List<String[]> csvRecords = reader.readAll();
+            for (int i = 0; i < csvRecords.size() - 1; i++) {
+                kocinka.add(new PolylineDataNew(
+                        Long.parseLong(csvRecords.get(i)[0]),
+                        Long.parseLong(csvRecords.get(i)[1]),
+                        Double.parseDouble(csvRecords.get(i)[2]),
+                        Instant.parse(csvRecords.get(i)[3])
+                ));
+            }
+        } catch (IOException | CsvException e) {
+            e.printStackTrace();
+            return List.of();
+        }
+        return kocinka;
+    }
 
 
 }
