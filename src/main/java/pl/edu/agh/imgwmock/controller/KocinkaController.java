@@ -104,13 +104,10 @@ public class KocinkaController implements DataController<PolylineDataNew> {
         List<PolylineDataNew> kocinka = this.kocinka
                 .stream().filter(riverPoint -> riverPoint.getValue() != null)
                 .filter(precipitation -> precipitation.getDate().isAfter(Instant.parse(instantFrom))).collect(Collectors.toList());
-        if (kocinka.size() < length) {
-            return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylineDataNew::getValue)).collect(Collectors.toList()).get(0).getValue(), HttpStatus.OK);
-        } else {
+        if (kocinka.size() <= length) {
             kocinka = kocinka.subList(0, length - 1);
-            return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylineDataNew::getValue)).collect(Collectors.toList()).get(0).getValue(), HttpStatus.OK);
-
         }
+        return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylineDataNew::getValue)).collect(Collectors.toList()).get(0).getValue(), HttpStatus.OK);
     }
 
     @CrossOrigin
@@ -120,13 +117,10 @@ public class KocinkaController implements DataController<PolylineDataNew> {
         List<PolylineDataNew> kocinka = this.kocinka
                 .stream().filter(riverPoint -> riverPoint.getValue() != null)
                 .filter(precipitation -> precipitation.getDate().isAfter(Instant.parse(instantFrom))).collect(Collectors.toList());
-        if (kocinka.size() < length) {
-            return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylineDataNew::getValue)).collect(Collectors.toList()).get(kocinka.size() - 1).getValue(), HttpStatus.OK);
-        } else {
+        if (kocinka.size() <= length) {
             kocinka = kocinka.subList(0, length - 1);
-            return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylineDataNew::getValue)).collect(Collectors.toList()).get(kocinka.size() - 1).getValue(), HttpStatus.OK);
-
         }
+        return new ResponseEntity<>(kocinka.stream().sorted(Comparator.comparing(PolylineDataNew::getValue)).collect(Collectors.toList()).get(kocinka.size() - 1).getValue(), HttpStatus.OK);
     }
 
     @CrossOrigin
