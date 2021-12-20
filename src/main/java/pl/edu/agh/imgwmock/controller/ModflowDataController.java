@@ -9,12 +9,9 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import pl.edu.agh.imgwmock.model.HydrologicalData;
 import pl.edu.agh.imgwmock.model.Info;
-import pl.edu.agh.imgwmock.model.PointData;
-import pl.edu.agh.imgwmock.model.PolygonDataNew;
-import pl.edu.agh.imgwmock.model.PolygonDataOld;
 import pl.edu.agh.imgwmock.model.Station;
-import pl.edu.agh.imgwmock.utils.ImgwUtils;
 import pl.edu.agh.imgwmock.utils.ModflowDataConverter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -30,7 +27,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Controller
 @RequestMapping("/modflow")
-public class ModflowDataController implements DataController<PolygonDataNew> {
+public class ModflowDataController implements DataController {
 
     private final ModflowDataConverter converter = new ModflowDataConverter();
 
@@ -107,7 +104,7 @@ public class ModflowDataController implements DataController<PolygonDataNew> {
 
     @CrossOrigin
     @GetMapping("/data")
-    public ResponseEntity<List<PolygonDataNew>> getData(
+    public ResponseEntity<List<HydrologicalData>> getData(
             @RequestParam(value = "stationId", required = false) Optional<Long> stationId, // ignored
             @RequestParam(value = "date", required = false) Optional<String> dateString,
             @RequestParam(value = "dateFrom", required = false) Optional<String> dateFrom,
@@ -117,7 +114,7 @@ public class ModflowDataController implements DataController<PolygonDataNew> {
 
         Optional<Instant> dateFromOpt = Optional.empty();
         Optional<Instant> dateToOpt = Optional.empty();
-        List<PolygonDataNew> data = converter.getData();
+        List<HydrologicalData> data = converter.getData();
 
         if (dateString.isPresent()) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -136,7 +133,7 @@ public class ModflowDataController implements DataController<PolygonDataNew> {
         }
 
         if (stationId.isPresent()) {
-            data = data.stream().filter(d -> d.getPolygonId().equals(stationId.get())).collect(Collectors.toList());
+            data = data.stream().filter(d -> d.getStationId().equals(stationId.get())).collect(Collectors.toList());
         }
         if (dateFromOpt.isPresent()) {
             Optional<Instant> finalDateFromOpt1 = dateFromOpt;

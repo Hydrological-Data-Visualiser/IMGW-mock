@@ -2,7 +2,7 @@ package pl.edu.agh.imgwmock.utils;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
-import pl.edu.agh.imgwmock.model.PolylineDataNew;
+import pl.edu.agh.imgwmock.model.HydrologicalData;
 import pl.edu.agh.imgwmock.model.Station;
 
 import java.io.FileReader;
@@ -42,13 +42,13 @@ public class NewKocinkaUtils {
         return kocinka;
     }
 
-    public static List<PolylineDataNew> getNewKocinkaRandomData(Optional<String> instant) {
+    public static List<HydrologicalData> getNewKocinkaRandomData(Optional<String> instant) {
         List<Station> stations = getKocinkaStations();
-        List<PolylineDataNew> result = new ArrayList<>();
+        List<HydrologicalData> result = new ArrayList<>();
         Random random = new Random();
         Long lastId = 0L;
         for (Station station : stations) {
-            result.add(new PolylineDataNew(
+            result.add(new HydrologicalData(
                     lastId,
                     station.getId(),
                     random.nextDouble() * 10,
@@ -59,12 +59,12 @@ public class NewKocinkaUtils {
         return result;
     }
 
-    public static List<PolylineDataNew> getNewKocinkaRandomDataNewNew() {
-        List<PolylineDataNew> kocinka = new ArrayList<>();
+    public static List<HydrologicalData> getNewKocinkaRandomDataNewNew() {
+        List<HydrologicalData> kocinka = new ArrayList<>();
         try (CSVReader reader = new CSVReader(new FileReader("src/main/resources/kocinkaRandom.csv"))) {
             List<String[]> csvRecords = reader.readAll();
             for (int i = 0; i < csvRecords.size() - 1; i++) {
-                kocinka.add(new PolylineDataNew(
+                kocinka.add(new HydrologicalData(
                         Long.parseLong(csvRecords.get(i)[0]),
                         Long.parseLong(csvRecords.get(i)[1]),
                         Double.parseDouble(csvRecords.get(i)[2]),

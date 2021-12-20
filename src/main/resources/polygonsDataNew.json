@@ -1,457 +1,457 @@
 [
   {
     "id": 0,
-    "polygonId": 0,
+    "stationId": 0,
     "value": 4.11450944937319,
     "date": "2021-10-11T10:10:10Z"
   },
   {
     "id": 1,
-    "polygonId": 1,
+    "stationId": 1,
     "value": 5.118971627455865,
     "date": "2021-10-11T10:10:10Z"
   },
   {
     "id": 2,
-    "polygonId": 2,
+    "stationId": 2,
     "value": 9.107590524415713,
     "date": "2021-10-11T10:10:10Z"
   },
   {
     "id": 3,
-    "polygonId": 3,
+    "stationId": 3,
     "value": 9.961499582101505,
     "date": "2021-10-11T10:10:10Z"
   },
   {
     "id": 4,
-    "polygonId": 0,
+    "stationId": 0,
     "value": 4.7618561878395615,
     "date": "2021-10-12T10:10:10Z"
   },
   {
     "id": 5,
-    "polygonId": 1,
+    "stationId": 1,
     "value": 0.2859735177313072,
     "date": "2021-10-12T10:10:10Z"
   },
   {
     "id": 6,
-    "polygonId": 2,
+    "stationId": 2,
     "value": 8.550877563245521,
     "date": "2021-10-12T10:10:10Z"
   },
   {
     "id": 7,
-    "polygonId": 3,
+    "stationId": 3,
     "value": 5.472973383121101,
     "date": "2021-10-12T10:10:10Z"
   },
   {
     "id": 8,
-    "polygonId": 0,
+    "stationId": 0,
     "value": 3.4686588544071437,
     "date": "2021-10-13T10:10:10Z"
   },
   {
     "id": 9,
-    "polygonId": 1,
+    "stationId": 1,
     "value": 2.3971182505120883,
     "date": "2021-10-13T10:10:10Z"
   },
   {
     "id": 10,
-    "polygonId": 2,
+    "stationId": 2,
     "value": 0.27846395976502625,
     "date": "2021-10-13T10:10:10Z"
   },
   {
     "id": 11,
-    "polygonId": 3,
+    "stationId": 3,
     "value": 8.766274662719216,
     "date": "2021-10-13T10:10:10Z"
   },
   {
     "id": 12,
-    "polygonId": 0,
+    "stationId": 0,
     "value": 9.062521603145484,
     "date": "2021-10-14T10:10:10Z"
   },
   {
     "id": 13,
-    "polygonId": 1,
+    "stationId": 1,
     "value": 1.7354829298272467,
     "date": "2021-10-14T10:10:10Z"
   },
   {
     "id": 14,
-    "polygonId": 2,
+    "stationId": 2,
     "value": 3.832582018043121,
     "date": "2021-10-14T10:10:10Z"
   },
   {
     "id": 15,
-    "polygonId": 3,
+    "stationId": 3,
     "value": 7.136485707318646,
     "date": "2021-10-14T10:10:10Z"
   },
   {
     "id": 16,
-    "polygonId": 0,
+    "stationId": 0,
     "value": 8.656479074595572,
     "date": "2021-10-15T10:10:10Z"
   },
   {
     "id": 17,
-    "polygonId": 1,
+    "stationId": 1,
     "value": 7.28523994760566,
     "date": "2021-10-15T10:10:10Z"
   },
   {
     "id": 18,
-    "polygonId": 2,
+    "stationId": 2,
     "value": 0.04829048060245755,
     "date": "2021-10-15T10:10:10Z"
   },
   {
     "id": 19,
-    "polygonId": 3,
+    "stationId": 3,
     "value": 4.729246484353387,
     "date": "2021-10-15T10:10:10Z"
   },
   {
     "id": 20,
-    "polygonId": 0,
+    "stationId": 0,
     "value": 9.909844861868836,
     "date": "2021-10-16T10:10:10Z"
   },
   {
     "id": 21,
-    "polygonId": 1,
+    "stationId": 1,
     "value": 3.7649522192698868,
     "date": "2021-10-16T10:10:10Z"
   },
   {
     "id": 22,
-    "polygonId": 2,
+    "stationId": 2,
     "value": 1.6557742457991154,
     "date": "2021-10-16T10:10:10Z"
   },
   {
     "id": 23,
-    "polygonId": 3,
+    "stationId": 3,
     "value": 9.540140997471628,
     "date": "2021-10-16T10:10:10Z"
   },
   {
     "id": 24,
-    "polygonId": 0,
+    "stationId": 0,
     "value": 1.265981299839788,
     "date": "2021-10-17T10:10:10Z"
   },
   {
     "id": 25,
-    "polygonId": 1,
+    "stationId": 1,
     "value": 7.160630986625922,
     "date": "2021-10-17T10:10:10Z"
   },
   {
     "id": 26,
-    "polygonId": 2,
+    "stationId": 2,
     "value": 5.757422936116093,
     "date": "2021-10-17T10:10:10Z"
   },
   {
     "id": 27,
-    "polygonId": 3,
+    "stationId": 3,
     "value": 6.704528441690049,
     "date": "2021-10-17T10:10:10Z"
   },
   {
     "id": 28,
-    "polygonId": 0,
+    "stationId": 0,
     "value": 6.226868241211242,
     "date": "2021-10-18T10:10:10Z"
   },
   {
     "id": 29,
-    "polygonId": 1,
+    "stationId": 1,
     "value": 8.326737630517663,
     "date": "2021-10-18T10:10:10Z"
   },
   {
     "id": 30,
-    "polygonId": 2,
+    "stationId": 2,
     "value": 7.36944832660585,
     "date": "2021-10-18T10:10:10Z"
   },
   {
     "id": 31,
-    "polygonId": 3,
+    "stationId": 3,
     "value": 8.783690422521303,
     "date": "2021-10-18T10:10:10Z"
   },
   {
     "id": 32,
-    "polygonId": 0,
+    "stationId": 0,
     "value": 2.8122365687763295,
     "date": "2021-10-19T10:10:10Z"
   },
   {
     "id": 33,
-    "polygonId": 1,
+    "stationId": 1,
     "value": 3.451816292446963,
     "date": "2021-10-19T10:10:10Z"
   },
   {
     "id": 34,
-    "polygonId": 2,
+    "stationId": 2,
     "value": 7.211939633973571,
     "date": "2021-10-19T10:10:10Z"
   },
   {
     "id": 35,
-    "polygonId": 3,
+    "stationId": 3,
     "value": 8.137933407071998,
     "date": "2021-10-19T10:10:10Z"
   },
   {
     "id": 36,
-    "polygonId": 0,
+    "stationId": 0,
     "value": 4.751423468526605,
     "date": "2021-10-20T10:10:10Z"
   },
   {
     "id": 37,
-    "polygonId": 1,
+    "stationId": 1,
     "value": 2.2264707185299635,
     "date": "2021-10-20T10:10:10Z"
   },
   {
     "id": 38,
-    "polygonId": 2,
+    "stationId": 2,
     "value": 6.237896879253682,
     "date": "2021-10-20T10:10:10Z"
   },
   {
     "id": 39,
-    "polygonId": 3,
+    "stationId": 3,
     "value": 8.674547541902543,
     "date": "2021-10-20T10:10:10Z"
   },
   {
     "id": 40,
-    "polygonId": 0,
+    "stationId": 0,
     "value": 6.668994992895975,
     "date": "2021-10-21T10:10:10Z"
   },
   {
     "id": 41,
-    "polygonId": 1,
+    "stationId": 1,
     "value": 9.404902205307636,
     "date": "2021-10-21T10:10:10Z"
   },
   {
     "id": 42,
-    "polygonId": 2,
+    "stationId": 2,
     "value": 4.010921649360542,
     "date": "2021-10-21T10:10:10Z"
   },
   {
     "id": 43,
-    "polygonId": 3,
+    "stationId": 3,
     "value": 4.268291221005014,
     "date": "2021-10-21T10:10:10Z"
   },
   {
     "id": 44,
-    "polygonId": 0,
+    "stationId": 0,
     "value": 1.5505770121523288,
     "date": "2021-10-22T10:10:10Z"
   },
   {
     "id": 45,
-    "polygonId": 1,
+    "stationId": 1,
     "value": 3.11725352876889,
     "date": "2021-10-22T10:10:10Z"
   },
   {
     "id": 46,
-    "polygonId": 2,
+    "stationId": 2,
     "value": 7.972885767315337,
     "date": "2021-10-22T10:10:10Z"
   },
   {
     "id": 47,
-    "polygonId": 3,
+    "stationId": 3,
     "value": 8.974334737766284,
     "date": "2021-10-22T10:10:10Z"
   },
   {
     "id": 48,
-    "polygonId": 0,
+    "stationId": 0,
     "value": 5.1132204033592465,
     "date": "2021-10-23T10:10:10Z"
   },
   {
     "id": 49,
-    "polygonId": 1,
+    "stationId": 1,
     "value": 3.768507548681267,
     "date": "2021-10-23T10:10:10Z"
   },
   {
     "id": 50,
-    "polygonId": 2,
+    "stationId": 2,
     "value": 5.887040445572279,
     "date": "2021-10-23T10:10:10Z"
   },
   {
     "id": 51,
-    "polygonId": 3,
+    "stationId": 3,
     "value": 9.78836315979852,
     "date": "2021-10-23T10:10:10Z"
   },
   {
     "id": 52,
-    "polygonId": 0,
+    "stationId": 0,
     "value": 8.355020675019693,
     "date": "2021-10-24T10:10:10Z"
   },
   {
     "id": 53,
-    "polygonId": 1,
+    "stationId": 1,
     "value": 0.6507154405913718,
     "date": "2021-10-24T10:10:10Z"
   },
   {
     "id": 54,
-    "polygonId": 2,
+    "stationId": 2,
     "value": 4.298666673216291,
     "date": "2021-10-24T10:10:10Z"
   },
   {
     "id": 55,
-    "polygonId": 3,
+    "stationId": 3,
     "value": 6.15580449974728,
     "date": "2021-10-24T10:10:10Z"
   },
   {
     "id": 56,
-    "polygonId": 0,
+    "stationId": 0,
     "value": 6.521602909448905,
     "date": "2021-10-25T10:10:10Z"
   },
   {
     "id": 57,
-    "polygonId": 1,
+    "stationId": 1,
     "value": 9.498836345392242,
     "date": "2021-10-25T10:10:10Z"
   },
   {
     "id": 58,
-    "polygonId": 2,
+    "stationId": 2,
     "value": 1.7245105185554732,
     "date": "2021-10-25T10:10:10Z"
   },
   {
     "id": 59,
-    "polygonId": 3,
+    "stationId": 3,
     "value": 1.6919119344433198,
     "date": "2021-10-25T10:10:10Z"
   },
   {
     "id": 60,
-    "polygonId": 0,
+    "stationId": 0,
     "value": 0.0024705201510344388,
     "date": "2021-10-26T10:10:10Z"
   },
   {
     "id": 61,
-    "polygonId": 1,
+    "stationId": 1,
     "value": 3.1364923608630435,
     "date": "2021-10-26T10:10:10Z"
   },
   {
     "id": 62,
-    "polygonId": 2,
+    "stationId": 2,
     "value": 6.46388726320366,
     "date": "2021-10-26T10:10:10Z"
   },
   {
     "id": 63,
-    "polygonId": 3,
+    "stationId": 3,
     "value": 2.646699573930066,
     "date": "2021-10-26T10:10:10Z"
   },
   {
     "id": 64,
-    "polygonId": 0,
+    "stationId": 0,
     "value": 0.258111000783221,
     "date": "2021-10-27T10:10:10Z"
   },
   {
     "id": 65,
-    "polygonId": 1,
+    "stationId": 1,
     "value": 9.086454154035945,
     "date": "2021-10-27T10:10:10Z"
   },
   {
     "id": 66,
-    "polygonId": 2,
+    "stationId": 2,
     "value": 5.4184750770836185,
     "date": "2021-10-27T10:10:10Z"
   },
   {
     "id": 67,
-    "polygonId": 3,
+    "stationId": 3,
     "value": 4.5334920705697055,
     "date": "2021-10-27T10:10:10Z"
   },
   {
     "id": 68,
-    "polygonId": 0,
+    "stationId": 0,
     "value": 1.7791380884739327,
     "date": "2021-10-28T10:10:10Z"
   },
   {
     "id": 69,
-    "polygonId": 1,
+    "stationId": 1,
     "value": 2.561690780017438,
     "date": "2021-10-28T10:10:10Z"
   },
   {
     "id": 70,
-    "polygonId": 2,
+    "stationId": 2,
     "value": 2.114466451982847,
     "date": "2021-10-28T10:10:10Z"
   },
   {
     "id": 71,
-    "polygonId": 3,
+    "stationId": 3,
     "value": 3.0371152798609904,
     "date": "2021-10-28T10:10:10Z"
   },
   {
     "id": 72,
-    "polygonId": 0,
+    "stationId": 0,
     "value": 9.291646054759614,
     "date": "2021-10-29T10:10:10Z"
   },
   {
     "id": 73,
-    "polygonId": 1,
+    "stationId": 1,
     "value": 0.6063310780928011,
     "date": "2021-10-29T10:10:10Z"
   },
   {
     "id": 74,
-    "polygonId": 2,
+    "stationId": 2,
     "value": 9.23988222767788,
     "date": "2021-10-29T10:10:10Z"
   },
   {
     "id": 75,
-    "polygonId": 3,
+    "stationId": 3,
     "value": 7.827523768442752,
     "date": "2021-10-29T10:10:10Z"
   }

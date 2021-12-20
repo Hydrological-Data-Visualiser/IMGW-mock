@@ -9,9 +9,8 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import pl.edu.agh.imgwmock.model.DataType;
+import pl.edu.agh.imgwmock.model.HydrologicalData;
 import pl.edu.agh.imgwmock.model.Info;
-import pl.edu.agh.imgwmock.model.PointData;
-import pl.edu.agh.imgwmock.model.PolylineDataNew;
 import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -22,7 +21,7 @@ import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/kocinkaTemperatureV2")
-public class KocinkaTemperatureV2Controller extends KocinkaTemperatureController implements DataController<PolylineDataNew> {
+public class KocinkaTemperatureV2Controller extends KocinkaTemperatureController implements DataController {
     Logger logger = LoggerFactory.getLogger(KocinkaTemperatureV2Controller.class);
 
     @CrossOrigin
@@ -33,7 +32,7 @@ public class KocinkaTemperatureV2Controller extends KocinkaTemperatureController
     }
 
     private List<LocalDate> getAvailableDates() {
-        List<PointData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
+        List<HydrologicalData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
         return kocinkaTemperatureData.stream().map(a -> LocalDate.ofInstant(a.getDate(), ZoneId.systemDefault())).distinct().collect(Collectors.toList());
     }
 }

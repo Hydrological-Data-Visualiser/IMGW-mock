@@ -2,7 +2,7 @@ package pl.edu.agh.imgwmock.utils;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
-import pl.edu.agh.imgwmock.model.PointData;
+import pl.edu.agh.imgwmock.model.HydrologicalData;
 import pl.edu.agh.imgwmock.model.PolylineDataOld;
 import pl.edu.agh.imgwmock.model.Station;
 
@@ -38,8 +38,8 @@ public class KocinkaUtils {
         return kocinka;
     }
 
-    public static List<PointData> getKocinkaTemperatureData() {
-        List<PointData> temperature = new ArrayList<>();
+    public static List<HydrologicalData> getKocinkaTemperatureData() {
+        List<HydrologicalData> temperature = new ArrayList<>();
         try {
             List<Station> stations = CSVUtils.getStationListFromCSV("src/main/resources/kocinka/kocinka_stations.csv");
             AtomicReference<Long> lastId = new AtomicReference<>(0L);
@@ -51,11 +51,11 @@ public class KocinkaUtils {
                     String[] dates = record[1].split("-");
                     String dateNew = dates[2] + "-" + dates[1] + "-" + dates[0];
 
-                    PointData dailyPrecipitation = new PointData(
+                    HydrologicalData dailyPrecipitation = new HydrologicalData(
                             lastId.getAndSet(lastId.get() + 1),
                             station.getId(),
-                            Instant.parse(dateNew + "T" + record[2] + "Z"),
-                            Double.parseDouble(record[4])
+                            Double.parseDouble(record[4]),
+                            Instant.parse(dateNew + "T" + record[2] + "Z")
                     );
                     temperature.add(dailyPrecipitation);
                 });
@@ -67,8 +67,8 @@ public class KocinkaUtils {
         }
     }
 
-    public static List<PointData> getKocinkaPressureData() {
-        List<PointData> temperature = new ArrayList<>();
+    public static List<HydrologicalData> getKocinkaPressureData() {
+        List<HydrologicalData> temperature = new ArrayList<>();
         try {
             List<Station> stations = CSVUtils.getStationListFromCSV("src/main/resources/kocinka/kocinka_stations.csv");
             AtomicReference<Long> lastId = new AtomicReference<>(0L);
@@ -79,11 +79,11 @@ public class KocinkaUtils {
                 csvRecords.forEach(record -> {
                     String[] dates = record[1].split("-");
                     String dateNew = dates[2] + "-" + dates[1] + "-" + dates[0];
-                    PointData dailyPrecipitation = new PointData(
+                    HydrologicalData dailyPrecipitation = new HydrologicalData(
                             lastId.getAndSet(lastId.get() + 1),
                             station.getId(),
-                            Instant.parse(dateNew + "T" + record[2] + "Z"),
-                            Double.parseDouble(record[6])
+                            Double.parseDouble(record[6]),
+                            Instant.parse(dateNew + "T" + record[2] + "Z")
                     );
                     temperature.add(dailyPrecipitation);
                 });

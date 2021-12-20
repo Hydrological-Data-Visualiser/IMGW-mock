@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import pl.edu.agh.imgwmock.model.DataType;
+import pl.edu.agh.imgwmock.model.HydrologicalData;
 import pl.edu.agh.imgwmock.model.Info;
-import pl.edu.agh.imgwmock.model.PolylineDataNew;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
@@ -20,7 +20,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/kocinkaV2")
-public class KocinkaV2Controller extends KocinkaController implements DataController<PolylineDataNew> {
+public class KocinkaV2Controller extends KocinkaController implements DataController {
     Logger logger = LoggerFactory.getLogger(KocinkaV2Controller.class);
 
     @CrossOrigin
