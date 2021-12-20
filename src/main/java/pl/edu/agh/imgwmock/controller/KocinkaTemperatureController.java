@@ -1,6 +1,5 @@
 package pl.edu.agh.imgwmock.controller;
 
-import lombok.val;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -10,7 +9,10 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import pl.edu.agh.imgwmock.model.*;
+import pl.edu.agh.imgwmock.model.DataType;
+import pl.edu.agh.imgwmock.model.HydrologicalData;
+import pl.edu.agh.imgwmock.model.Info;
+import pl.edu.agh.imgwmock.model.Station;
 import pl.edu.agh.imgwmock.utils.CSVUtils;
 import pl.edu.agh.imgwmock.utils.KocinkaUtils;
 import pl.edu.agh.imgwmock.utils.NewKocinkaUtils;
@@ -30,6 +32,9 @@ import java.util.stream.Stream;
 @RequestMapping("/kocinkaTemperature")
 public class KocinkaTemperatureController implements DataController {
     Logger logger = LoggerFactory.getLogger(KocinkaTemperatureController.class);
+    List<HydrologicalData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
+    List<HydrologicalData> kocinkaTemperatureLineData = NewKocinkaUtils.getKocinkaTemperatureData();
+    List<Station> stations = NewKocinkaUtils.getKocinkaStations();
 
     @CrossOrigin
     @GetMapping("/info")
@@ -47,7 +52,8 @@ public class KocinkaTemperatureController implements DataController {
             @RequestParam(value = "dateTo", required = false) Optional<String> dateTo,
             @RequestParam(value = "dateInstant", required = false) Optional<String> instant,
             HttpServletRequest request) {
-        List<HydrologicalData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
+        List<HydrologicalData> kocinkaTemperatureLineData = this.kocinkaTemperatureLineData;
+
         Optional<Instant> dateFromOpt = Optional.empty();
         Optional<Instant> dateToOpt = Optional.empty();
 
@@ -66,45 +72,21 @@ public class KocinkaTemperatureController implements DataController {
             dateFromOpt = Optional.of(Instant.parse(instant.get()).minusSeconds(900));
             dateToOpt = Optional.of(Instant.parse(instant.get()).plusSeconds(900));
         }
-
         if (stationId.isPresent()) {
-            kocinkaTemperatureData = kocinkaTemperatureData.stream().filter(a -> a.getStationId().equals(stationId.get())).collect(Collectors.toList());
+            kocinkaTemperatureLineData = kocinkaTemperatureLineData.stream().filter(a -> a.getStationId().equals(stationId.get())).collect(Collectors.toList());
         }
 
         if (dateFromOpt.isPresent()) {
             Optional<Instant> finalDateFromOpt = dateFromOpt;
-            kocinkaTemperatureData = kocinkaTemperatureData.stream().filter(a -> a.getDate().isAfter(finalDateFromOpt.get())).collect(Collectors.toList());
+            kocinkaTemperatureLineData = kocinkaTemperatureLineData.stream().filter(a -> a.getDate().isAfter(finalDateFromOpt.get())).collect(Collectors.toList());
         }
 
         if (dateToOpt.isPresent()) {
             Optional<Instant> finalDateToOpt = dateToOpt;
-            kocinkaTemperatureData = kocinkaTemperatureData.stream().filter(a -> a.getDate().isBefore(finalDateToOpt.get())).collect(Collectors.toList());
+            kocinkaTemperatureLineData = kocinkaTemperatureLineData.stream().filter(a -> a.getDate().isBefore(finalDateToOpt.get())).collect(Collectors.toList());
         }
-        List<HydrologicalData> result = new ArrayList<>();
-        val kocinkaLines = NewKocinkaUtils.getKocinkaStations();
-        Long lastId = 0L;
-        for (Station point : kocinkaLines) {
-            val closestStation = findClosestStation(point);
-            val dataFromStation = kocinkaTemperatureData.stream()
-                    .filter(a -> a.getStationId().equals(closestStation.getId())).collect(Collectors.toList());
-            if (dataFromStation.size() > 0) {
-                result.add(new HydrologicalData(
-                        lastId,
-                        point.getId(),
-                        dataFromStation.get(0).getValue(),
-                        dataFromStation.get(0).getDate()
-                ));
-            } else {
-                result.add(new HydrologicalData(
-                        lastId,
-                        point.getId(),
-                        null,
-                        null
-                ));
-            }
-            lastId += 1;
-        }
-        return new ResponseEntity<>(result, HttpStatus.OK);
+
+        return new ResponseEntity<>(kocinkaTemperatureLineData, HttpStatus.OK);
     }
 
     private Station findClosestStation(Station point) {
@@ -124,10 +106,10 @@ public class KocinkaTemperatureController implements DataController {
     }
 
     private Stream<HydrologicalData> temperatureBetween(Instant instantFrom, Instant instantTo) {
-        List<HydrologicalData> kocinka = KocinkaUtils.getKocinkaTemperatureData()
+        List<HydrologicalData> kocinka = this.kocinkaTemperatureData
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         return kocinka.stream().filter(
-                dailyPrecipitation ->dailyPrecipitation.getDate().isAfter(instantFrom) && dailyPrecipitation.getDate().isBefore(instantTo));
+                dailyPrecipitation -> dailyPrecipitation.getDate().isAfter(instantFrom) && dailyPrecipitation.getDate().isBefore(instantTo));
     }
 
     @CrossOrigin
@@ -137,7 +119,7 @@ public class KocinkaTemperatureController implements DataController {
             @RequestParam(value = "length") int length,
             HttpServletRequest request) {
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<HydrologicalData> kocinka = KocinkaUtils.getKocinkaTemperatureData()
+        List<HydrologicalData> kocinka = this.kocinkaTemperatureData
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         List<Instant> aggregated = getAggregatedTimePoints(kocinka, dateFromInst, Instant.MAX);
         Instant dateToInst;
@@ -161,7 +143,7 @@ public class KocinkaTemperatureController implements DataController {
             @RequestParam(value = "length") int length,
             HttpServletRequest request) {
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<HydrologicalData> kocinka = KocinkaUtils.getKocinkaTemperatureData()
+        List<HydrologicalData> kocinka = this.kocinkaTemperatureData
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         List<Instant> aggregated = getAggregatedTimePoints(kocinka, dateFromInst, Instant.MAX);
         Instant dateToInst;
@@ -179,7 +161,7 @@ public class KocinkaTemperatureController implements DataController {
     }
 
     private List<LocalDate> getAvailableDates() {
-        List<HydrologicalData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
+        List<HydrologicalData> kocinkaTemperatureData = this.kocinkaTemperatureData;
         return kocinkaTemperatureData.stream().map(a -> LocalDate.ofInstant(a.getDate(), ZoneId.systemDefault())).distinct().collect(Collectors.toList());
     }
 
@@ -191,7 +173,7 @@ public class KocinkaTemperatureController implements DataController {
             @RequestParam(value = "step") int step,
             HttpServletRequest request) {
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<HydrologicalData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData()
+        List<HydrologicalData> kocinkaTemperatureData = this.kocinkaTemperatureData
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
 
         List<Instant> timePointsAfter = getAggregatedTimePoints(kocinkaTemperatureData, dateFromInst, Instant.MAX);
@@ -213,7 +195,7 @@ public class KocinkaTemperatureController implements DataController {
         Instant instantFrom = LocalDate.parse(dateString, formatter).atTime(0, 0, 0).toInstant(ZoneOffset.UTC);
         Instant instantTo = LocalDate.parse(dateString, formatter).atTime(23, 59, 59).toInstant(ZoneOffset.UTC);
 
-        List<HydrologicalData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData()
+        List<HydrologicalData> kocinkaTemperatureData = this.kocinkaTemperatureData
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
 
         List<Instant> ret = getAggregatedTimePoints(kocinkaTemperatureData, instantFrom, instantTo);
@@ -227,14 +209,14 @@ public class KocinkaTemperatureController implements DataController {
     public ResponseEntity<Integer> getLengthBetween(
             @RequestParam(value = "instantFrom") String instantFromString,
             @RequestParam(value = "instantTo") String instantToString,
-            HttpServletRequest request){
+            HttpServletRequest request) {
         Instant instantFrom = Instant.parse(instantFromString);
         Instant instantTo = Instant.parse(instantToString);
 
-        List<HydrologicalData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData()
+        List<HydrologicalData> kocinkaTemperatureData = this.kocinkaTemperatureData
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
 
-        // if does not work properly, then divide by days and run getAggergatedTimePoints for each 
+        // if does not work properly, then divide by days and run getAggergatedTimePoints for each
         List<Instant> ret = getAggregatedTimePoints(kocinkaTemperatureData, instantFrom, instantTo);
 
         return new ResponseEntity<>(ret.size(), HttpStatus.OK);
@@ -263,7 +245,7 @@ public class KocinkaTemperatureController implements DataController {
             @RequestParam(value = "id", required = false) Optional<Long> id,
             HttpServletRequest request
     ) {
-        List<Station> stations = NewKocinkaUtils.getKocinkaStations();
+        List<Station> stations = this.stations;
         if (id.isPresent()) {
             Optional<Station> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
             if (station.isPresent()) {

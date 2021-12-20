@@ -78,5 +78,52 @@ public class NewKocinkaUtils {
         return kocinka;
     }
 
-
+    public static List<HydrologicalData> getKocinkaTemperatureData() {
+        List<HydrologicalData> temperature = new ArrayList<>();
+        try {
+            List<Station> stations = CSVUtils.getStationListFromCSV("src/main/resources/kocinka/kocinka_stations.csv");
+            AtomicReference<Long> lastId = new AtomicReference<>(0L);
+            for (Station station : stations) {
+                String name = station.getName().toLowerCase().replace(" ", "_");
+                CSVReader reader = new CSVReader(new FileReader("src/main/resources/kocinka/" + name + ".csv"));
+                List<String[]> csvRecords = reader.readAll();
+                csvRecords.forEach(record -> {
+                    String[] dates = record[1].split("-");
+                    String dateNew = dates[2] + "-" + dates[1] + "-" + dates[0];
+                    if (station.getId() == 0) {
+                        for (long i = 0L; i <= 96L; i++) {
+                            temperature.add(new HydrologicalData(
+                                    lastId.getAndSet(lastId.get() + 1),
+                                    i,
+                                    Double.parseDouble(record[4]),
+                                    Instant.parse(dateNew + "T" + record[2] + "Z")
+                            ));
+                        }
+                    } else if (station.getId() == 1) {
+                        for (long i = 97; i <= 185; i++) {
+                            temperature.add(new HydrologicalData(
+                                    lastId.getAndSet(lastId.get() + 1),
+                                    i,
+                                    Double.parseDouble(record[4]),
+                                    Instant.parse(dateNew + "T" + record[2] + "Z")
+                            ));
+                        }
+                    } else if (station.getId() == 2L) {
+                        for (long i = 186; i <= 701; i++) {
+                            temperature.add(new HydrologicalData(
+                                    lastId.getAndSet(lastId.get() + 1),
+                                    i,
+                                    Double.parseDouble(record[4]),
+                                    Instant.parse(dateNew + "T" + record[2] + "Z")
+                            ));
+                        }
+                    }
+                });
+            }
+            return temperature;
+        } catch (IOException | CsvException e) {
+            e.printStackTrace();
+            return List.of();
+        }
+    }
 }

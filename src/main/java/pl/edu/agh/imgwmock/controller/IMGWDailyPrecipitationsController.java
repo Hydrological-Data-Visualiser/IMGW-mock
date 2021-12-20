@@ -29,6 +29,8 @@ import java.util.stream.Stream;
 @RequestMapping("/imgw")
 public class IMGWDailyPrecipitationsController implements DataController {
     Logger logger = LoggerFactory.getLogger(IMGWDailyPrecipitationsController.class);
+    List<HydrologicalData> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull();
+    List<Station> stations = ImgwUtils.getStationsWhereAllDataAreNotNull();
 
     public IMGWDailyPrecipitationsController() {
     }
@@ -54,7 +56,7 @@ public class IMGWDailyPrecipitationsController implements DataController {
 
         Optional<Instant> dateFromOpt = Optional.empty();
         Optional<Instant> dateToOpt = Optional.empty();
-        List<HydrologicalData> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull();
+        List<HydrologicalData> dailyPrecipitations = this.dailyPrecipitations;
 
         if (dateString.isPresent()) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -87,7 +89,7 @@ public class IMGWDailyPrecipitationsController implements DataController {
     }
 
     private Stream<HydrologicalData> precipitationBetween(String instantFrom, int length) {
-        List<HydrologicalData> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull()
+        List<HydrologicalData> dailyPrecipitations = this.dailyPrecipitations
                 .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
         Instant dateFromInst = Instant.parse(instantFrom).minusSeconds(900);
         Instant dateToInst = DailyPrecipitationUtils.getInstantAfterDistinct(dailyPrecipitations, dateFromInst, length);
@@ -127,7 +129,7 @@ public class IMGWDailyPrecipitationsController implements DataController {
     }
 
     private List<LocalDate> getAvailableDates() {
-        List<HydrologicalData> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull()
+        List<HydrologicalData> dailyPrecipitations = this.dailyPrecipitations
                 .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
         return dailyPrecipitations.stream().map(a -> LocalDate.ofInstant(a.getDate(), ZoneId.systemDefault())).distinct().collect(Collectors.toList());
     }
@@ -140,7 +142,7 @@ public class IMGWDailyPrecipitationsController implements DataController {
             @RequestParam(value = "step") int step,
             HttpServletRequest request) {
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<HydrologicalData> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull()
+        List<HydrologicalData> dailyPrecipitations = this.dailyPrecipitations
                 .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
         List<Instant> timePointsAfter = dailyPrecipitations.stream().map(HydrologicalData::getDate).filter(date -> !date.isBefore(dateFromInst)).sorted().distinct().collect(Collectors.toList());
 
@@ -161,7 +163,7 @@ public class IMGWDailyPrecipitationsController implements DataController {
         Instant instantFrom = LocalDate.parse(dateString, formatter).atTime(0, 0, 0).minusSeconds(1).toInstant(ZoneOffset.UTC);
         Instant instantTo = LocalDate.parse(dateString, formatter).atTime(23, 59, 59).toInstant(ZoneOffset.UTC);
 
-        List<HydrologicalData> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull()
+        List<HydrologicalData> dailyPrecipitations = this.dailyPrecipitations
                 .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
 
         List<Instant> baseDayTimePoints = dailyPrecipitations.stream().map(HydrologicalData::getDate).filter(date -> !date.isBefore(instantFrom) && !date.isAfter(instantTo)).sorted().distinct().collect(Collectors.toList());
@@ -179,7 +181,7 @@ public class IMGWDailyPrecipitationsController implements DataController {
         Instant instantFrom = Instant.parse(instantFromString);
         Instant instantTo = Instant.parse(instantToString);
 
-        List<HydrologicalData> dailyPrecipitations = ImgwUtils.getDailyPrecipitationsFromStationsWhereAllDataAreNotNull()
+        List<HydrologicalData> dailyPrecipitations = this.dailyPrecipitations
                 .stream().filter(precipitation -> precipitation.getValue() != null).collect(Collectors.toList());
 
         int count =
@@ -200,7 +202,7 @@ public class IMGWDailyPrecipitationsController implements DataController {
             HttpServletRequest request
     ) {
         logger.info("Getting station data: stationId = " + id.toString());
-        List<Station> stations = ImgwUtils.getStationsWhereAllDataAreNotNull();
+        List<Station> stations = this.stations;
         if (id.isPresent()) {
             Optional<Station> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
             if (station.isPresent()) {

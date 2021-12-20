@@ -30,6 +30,8 @@ import java.util.stream.Collectors;
 public class ModflowDataController implements DataController {
 
     private final ModflowDataConverter converter = new ModflowDataConverter();
+    List<Station> stations = converter.getStations();
+    List<HydrologicalData> data = converter.getData();
 
     @CrossOrigin
     @GetMapping("/info")
@@ -88,7 +90,7 @@ public class ModflowDataController implements DataController {
             @RequestParam(value = "id", required = false) Optional<Long> id,
             HttpServletRequest request
     ) {
-        val stations = converter.getStations();
+        val stations = this.stations;
         if (id.isPresent()) {
             Optional<Station> station = stations.stream().filter(station1 -> Objects.equals(station1.getId(), id.get())).findFirst();
             if (station.isPresent()) {
@@ -114,7 +116,7 @@ public class ModflowDataController implements DataController {
 
         Optional<Instant> dateFromOpt = Optional.empty();
         Optional<Instant> dateToOpt = Optional.empty();
-        List<HydrologicalData> data = converter.getData();
+        List<HydrologicalData> data = this.data;
 
         if (dateString.isPresent()) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
