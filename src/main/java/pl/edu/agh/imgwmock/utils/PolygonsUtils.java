@@ -2,7 +2,7 @@ package pl.edu.agh.imgwmock.utils;
 
 import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
-import pl.edu.agh.imgwmock.model.PolygonDataNew;
+import pl.edu.agh.imgwmock.model.HydrologicalData;
 import pl.edu.agh.imgwmock.model.Station;
 
 import java.io.FileReader;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class PolygonsUtils {
 
-    public static List<PolygonDataNew> getPolygonData() {
+    public static List<HydrologicalData> getPolygonData() {
         String pathToFile = "src/main/resources/polygonsDataNew.json";
         Gson gson = new GsonBuilder().registerTypeAdapter(Instant.class, new JsonDeserializer<Instant>() {
             @Override
@@ -25,9 +25,9 @@ public class PolygonsUtils {
                 return instant;
             }
         }).create();
-        PolygonDataNew[] data = {};
+        HydrologicalData[] data = {};
         try (JsonReader reader = new JsonReader(new FileReader(pathToFile))) {
-            data = gson.fromJson(reader, PolygonDataNew[].class);
+            data = gson.fromJson(reader, HydrologicalData[].class);
             return Arrays.asList(data);
         } catch (IOException e) {
             e.printStackTrace();

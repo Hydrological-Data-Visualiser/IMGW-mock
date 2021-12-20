@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 
 @Controller
 @RequestMapping("/polygons")
-public class PolygonController implements DataController<PolygonDataNew> {
+public class PolygonController implements DataController {
     Logger logger = LoggerFactory.getLogger(PolygonController.class);
 
     @CrossOrigin
@@ -45,7 +45,7 @@ public class PolygonController implements DataController<PolygonDataNew> {
 
     @CrossOrigin
     @GetMapping("/data")
-    public ResponseEntity<List<PolygonDataNew>> getData(
+    public ResponseEntity<List<HydrologicalData>> getData(
             @RequestParam(value = "stationId", required = false) Optional<Long> stationId, // ignored
             @RequestParam(value = "date", required = false) Optional<String> dateString,
             @RequestParam(value = "dateFrom", required = false) Optional<String> dateFrom,
@@ -53,7 +53,7 @@ public class PolygonController implements DataController<PolygonDataNew> {
             @RequestParam(value = "dateInstant", required = false) Optional<String> instant,
             HttpServletRequest request) {
         logger.info("Getting example polygons");
-        List<PolygonDataNew> polygons = PolygonsUtils.getPolygonData();
+        List<HydrologicalData> polygons = PolygonsUtils.getPolygonData();
 
         Optional<Instant> dateFromOpt = Optional.empty();
         Optional<Instant> dateToOpt = Optional.empty();
@@ -75,7 +75,7 @@ public class PolygonController implements DataController<PolygonDataNew> {
         }
 
         if (stationId.isPresent()) {
-            polygons = polygons.stream().filter(precipitation -> precipitation.getPolygonId().equals(stationId.get())).collect(Collectors.toList());
+            polygons = polygons.stream().filter(precipitation -> precipitation.getStationId().equals(stationId.get())).collect(Collectors.toList());
         }
         if (dateFromOpt.isPresent()) {
             Optional<Instant> finalDateFromOpt1 = dateFromOpt;

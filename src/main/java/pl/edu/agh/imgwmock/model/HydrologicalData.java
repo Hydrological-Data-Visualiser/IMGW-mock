@@ -6,12 +6,12 @@ import lombok.Setter;
 
 import java.time.Instant;
 
+@AllArgsConstructor
 @Getter
 @Setter
-@AllArgsConstructor
-public class PolylineDataNew {
-    private Long id;
-    private Long polylineId;
-    private Double value;
-    private Instant date;
+public class HydrologicalData {
+    Long id;
+    Long stationId;
+    Double value;
+    Instant date;
 }

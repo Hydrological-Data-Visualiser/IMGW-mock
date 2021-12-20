@@ -70,7 +70,7 @@ public class ModflowDataConverter {
                 DataType.POLYGON, "[metric]", "#FFF000", "#000FFF", getAvailableDates());
     }
 
-    public List<PolygonDataNew> getData() {
+    public List<HydrologicalData> getData() {
         List result = new ArrayList();
         for(int stressPeriod = 0; stressPeriod < 13; stressPeriod++) {
             result.addAll(convertDataToPolygons(stressPeriod, LAYER));
@@ -205,14 +205,14 @@ public class ModflowDataConverter {
         return begin + index * METER_TO_DEGREE;
     }
 
-    private List<PolygonDataNew> convertDataToPolygons(int stressPeriod, int layerNumber) {
+    private List<HydrologicalData> convertDataToPolygons(int stressPeriod, int layerNumber) {
         var layer = data.get(stressPeriod).get(layerNumber);
         Long id = 0L;
-        List<PolygonDataNew> result = new ArrayList<>();
+        List<HydrologicalData> result = new ArrayList<>();
         for (int i = 0; i < layer.size(); i++) {
             for (int j = 0; j < layer.get(i).size(); j++) {
                 Double value = layer.get(i).get(j);
-                result.add(new PolygonDataNew(
+                result.add(new HydrologicalData(
                         id,
                         id,
                         Double.compare(value, -999.0) == 0 ? null : value,

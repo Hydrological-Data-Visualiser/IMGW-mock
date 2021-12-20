@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 
 @Controller
 @RequestMapping("/kocinkaTemperature")
-public class KocinkaTemperatureController implements DataController<PolylineDataNew> {
+public class KocinkaTemperatureController implements DataController {
     Logger logger = LoggerFactory.getLogger(KocinkaTemperatureController.class);
 
     @CrossOrigin
@@ -40,14 +40,14 @@ public class KocinkaTemperatureController implements DataController<PolylineData
 
     @CrossOrigin
     @GetMapping("/data")
-    public ResponseEntity<List<PolylineDataNew>> getData(
+    public ResponseEntity<List<HydrologicalData>> getData(
             @RequestParam(value = "stationId", required = false) Optional<Long> stationId,
             @RequestParam(value = "date", required = false) Optional<String> dateString,
             @RequestParam(value = "dateFrom", required = false) Optional<String> dateFrom,
             @RequestParam(value = "dateTo", required = false) Optional<String> dateTo,
             @RequestParam(value = "dateInstant", required = false) Optional<String> instant,
             HttpServletRequest request) {
-        List<PointData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
+        List<HydrologicalData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
         Optional<Instant> dateFromOpt = Optional.empty();
         Optional<Instant> dateToOpt = Optional.empty();
 
@@ -80,7 +80,7 @@ public class KocinkaTemperatureController implements DataController<PolylineData
             Optional<Instant> finalDateToOpt = dateToOpt;
             kocinkaTemperatureData = kocinkaTemperatureData.stream().filter(a -> a.getDate().isBefore(finalDateToOpt.get())).collect(Collectors.toList());
         }
-        List<PolylineDataNew> result = new ArrayList<>();
+        List<HydrologicalData> result = new ArrayList<>();
         val kocinkaLines = NewKocinkaUtils.getKocinkaStations();
         Long lastId = 0L;
         for (Station point : kocinkaLines) {
@@ -88,14 +88,14 @@ public class KocinkaTemperatureController implements DataController<PolylineData
             val dataFromStation = kocinkaTemperatureData.stream()
                     .filter(a -> a.getStationId().equals(closestStation.getId())).collect(Collectors.toList());
             if (dataFromStation.size() > 0) {
-                result.add(new PolylineDataNew(
+                result.add(new HydrologicalData(
                         lastId,
                         point.getId(),
                         dataFromStation.get(0).getValue(),
                         dataFromStation.get(0).getDate()
                 ));
             } else {
-                result.add(new PolylineDataNew(
+                result.add(new HydrologicalData(
                         lastId,
                         point.getId(),
                         null,
@@ -123,8 +123,8 @@ public class KocinkaTemperatureController implements DataController<PolylineData
         return closestStation.get();
     }
 
-    private Stream<PointData> temperatureBetween(Instant instantFrom, Instant instantTo) {
-        List<PointData> kocinka = KocinkaUtils.getKocinkaTemperatureData()
+    private Stream<HydrologicalData> temperatureBetween(Instant instantFrom, Instant instantTo) {
+        List<HydrologicalData> kocinka = KocinkaUtils.getKocinkaTemperatureData()
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         return kocinka.stream().filter(
                 dailyPrecipitation ->dailyPrecipitation.getDate().isAfter(instantFrom) && dailyPrecipitation.getDate().isBefore(instantTo));
@@ -137,7 +137,7 @@ public class KocinkaTemperatureController implements DataController<PolylineData
             @RequestParam(value = "length") int length,
             HttpServletRequest request) {
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<PointData> kocinka = KocinkaUtils.getKocinkaTemperatureData()
+        List<HydrologicalData> kocinka = KocinkaUtils.getKocinkaTemperatureData()
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         List<Instant> aggregated = getAggregatedTimePoints(kocinka, dateFromInst, Instant.MAX);
         Instant dateToInst;
@@ -147,7 +147,7 @@ public class KocinkaTemperatureController implements DataController<PolylineData
         dateFromInst = dateFromInst.minusSeconds(900);
 
         OptionalDouble minValue =
-                temperatureBetween(dateFromInst, dateToInst).mapToDouble(PointData::getValue).min();
+                temperatureBetween(dateFromInst, dateToInst).mapToDouble(HydrologicalData::getValue).min();
 
         if (minValue.isPresent())
             return new ResponseEntity<>(minValue.getAsDouble(), HttpStatus.OK);
@@ -161,7 +161,7 @@ public class KocinkaTemperatureController implements DataController<PolylineData
             @RequestParam(value = "length") int length,
             HttpServletRequest request) {
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<PointData> kocinka = KocinkaUtils.getKocinkaTemperatureData()
+        List<HydrologicalData> kocinka = KocinkaUtils.getKocinkaTemperatureData()
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
         List<Instant> aggregated = getAggregatedTimePoints(kocinka, dateFromInst, Instant.MAX);
         Instant dateToInst;
@@ -171,7 +171,7 @@ public class KocinkaTemperatureController implements DataController<PolylineData
         dateFromInst = dateFromInst.minusSeconds(900);
 
         OptionalDouble maxValue =
-                temperatureBetween(dateFromInst, dateToInst).mapToDouble(PointData::getValue).max();
+                temperatureBetween(dateFromInst, dateToInst).mapToDouble(HydrologicalData::getValue).max();
 
         if (maxValue.isPresent())
             return new ResponseEntity<>(maxValue.getAsDouble(), HttpStatus.OK);
@@ -179,7 +179,7 @@ public class KocinkaTemperatureController implements DataController<PolylineData
     }
 
     private List<LocalDate> getAvailableDates() {
-        List<PointData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
+        List<HydrologicalData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData();
         return kocinkaTemperatureData.stream().map(a -> LocalDate.ofInstant(a.getDate(), ZoneId.systemDefault())).distinct().collect(Collectors.toList());
     }
 
@@ -191,7 +191,7 @@ public class KocinkaTemperatureController implements DataController<PolylineData
             @RequestParam(value = "step") int step,
             HttpServletRequest request) {
         Instant dateFromInst = Instant.parse(instantFrom);
-        List<PointData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData()
+        List<HydrologicalData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData()
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
 
         List<Instant> timePointsAfter = getAggregatedTimePoints(kocinkaTemperatureData, dateFromInst, Instant.MAX);
@@ -213,7 +213,7 @@ public class KocinkaTemperatureController implements DataController<PolylineData
         Instant instantFrom = LocalDate.parse(dateString, formatter).atTime(0, 0, 0).toInstant(ZoneOffset.UTC);
         Instant instantTo = LocalDate.parse(dateString, formatter).atTime(23, 59, 59).toInstant(ZoneOffset.UTC);
 
-        List<PointData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData()
+        List<HydrologicalData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData()
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
 
         List<Instant> ret = getAggregatedTimePoints(kocinkaTemperatureData, instantFrom, instantTo);
@@ -231,7 +231,7 @@ public class KocinkaTemperatureController implements DataController<PolylineData
         Instant instantFrom = Instant.parse(instantFromString);
         Instant instantTo = Instant.parse(instantToString);
 
-        List<PointData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData()
+        List<HydrologicalData> kocinkaTemperatureData = KocinkaUtils.getKocinkaTemperatureData()
                 .stream().filter(riverPoint -> riverPoint.getValue() != null).collect(Collectors.toList());
 
         // if does not work properly, then divide by days and run getAggergatedTimePoints for each 
@@ -240,8 +240,8 @@ public class KocinkaTemperatureController implements DataController<PolylineData
         return new ResponseEntity<>(ret.size(), HttpStatus.OK);
     }
 
-    private List<Instant> getAggregatedTimePoints(List<PointData> list, Instant instantFrom, Instant instantTo) {
-        List<Instant> dayTimePoints = list.stream().map(PointData::getDate).filter(date -> !date.isBefore(instantFrom) && !date.isAfter(instantTo)).sorted().distinct().collect(Collectors.toList());
+    private List<Instant> getAggregatedTimePoints(List<HydrologicalData> list, Instant instantFrom, Instant instantTo) {
+        List<Instant> dayTimePoints = list.stream().map(HydrologicalData::getDate).filter(date -> !date.isBefore(instantFrom) && !date.isAfter(instantTo)).sorted().distinct().collect(Collectors.toList());
 
         ArrayList<Instant> hours = new ArrayList<Instant>();
         for (Instant i : dayTimePoints) {

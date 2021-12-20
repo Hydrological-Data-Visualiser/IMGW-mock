@@ -2,6 +2,7 @@ package pl.edu.agh.imgwmock.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestParam;
+import pl.edu.agh.imgwmock.model.HydrologicalData;
 import pl.edu.agh.imgwmock.model.Info;
 import pl.edu.agh.imgwmock.model.Station;
 
@@ -10,10 +11,10 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-public interface DataController<T> {
+public interface DataController{
     ResponseEntity<Info> getInfo(HttpServletRequest request);
 
-    ResponseEntity<List<T>> getData(
+    ResponseEntity<List<HydrologicalData>> getData(
             @RequestParam(value = "stationId", required = false) Optional<Long> stationId,
             @RequestParam(value = "date", required = false) Optional<String> dateString,
             @RequestParam(value = "dateFrom", required = false) Optional<String> dateFrom,

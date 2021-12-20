@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import pl.edu.agh.imgwmock.model.DataType;
+import pl.edu.agh.imgwmock.model.HydrologicalData;
 import pl.edu.agh.imgwmock.model.Info;
-import pl.edu.agh.imgwmock.model.PolygonDataNew;
 import pl.edu.agh.imgwmock.utils.PolygonsUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/polygonsV2")
-public class PolygonV2Controller extends PolygonController implements DataController<PolygonDataNew> {
+public class PolygonV2Controller extends PolygonController implements DataController {
     @CrossOrigin
     @GetMapping("/info")
     public ResponseEntity<Info> getInfo(HttpServletRequest request) {
@@ -29,7 +29,7 @@ public class PolygonV2Controller extends PolygonController implements DataContro
 
     protected List<LocalDate> getAvailableDates() {
         List<LocalDate> polygons = PolygonsUtils.getPolygonData().stream()
-                .map(PolygonDataNew::getDate)
+                .map(HydrologicalData::getDate)
                 .map(a -> LocalDate.ofInstant(a, ZoneId.systemDefault()))
                 .distinct().collect(Collectors.toList());
         return polygons;
