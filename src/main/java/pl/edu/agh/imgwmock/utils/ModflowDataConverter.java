@@ -90,7 +90,7 @@ public class ModflowDataConverter {
         }
 
         for (int i = indexStart; i < possibleDates.size(); i++) {
-            if (compareStringInstant(instantFrom, i)) {
+            if (compareStringInstant(instantTo, i)) {
                 indexEnd = i;
                 break;
             }
